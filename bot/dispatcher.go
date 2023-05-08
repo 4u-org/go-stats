@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"go-stats/database"
 	"strings"
 	"time"
@@ -170,7 +171,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 
 	// fmt.Println("Update from bot: ", update.TypeName())
 	// fmt.Println("Entities from bot: ", e)
-	// fmt.Println("Event from bot: ", event)
+	u.logger.Info(fmt.Sprint("Event from bot: ", event))
 
 	// Update available chats and channels members
 	if err := u.highLevelDispatch(ctx, e, update, info); err != nil {
