@@ -65,7 +65,10 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error connecting to db")
 	}
-	db.AutoMigrate(&database.Bot{}, &database.User{}, &database.Chat{}, &database.ChatMember{}, &database.TgUser{})
+	err = db.AutoMigrate(&database.Bot{}, &database.User{}, &database.Chat{}, &database.ChatMember{}, &database.TgUser{})
+	if err != nil {
+		return errors.Wrap(err, "Error migrating db")
+	}
 
 	// Open the clickhouse database
 	clickDb, err := gorm.Open(clickhouse.Open(os.Getenv("CLICKHOUSE_DSN")))
