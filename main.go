@@ -96,7 +96,7 @@ func run(ctx context.Context) error {
 	}
 
 	// Open the state database
-	stateDb, err := bolt.Open("sessions/gaps-state.bbolt", fs.ModePerm, bolt.DefaultOptions)
+	stateDb, err := bolt.Open("storage/db.bbolt", fs.ModePerm, bolt.DefaultOptions)
 	if err != nil {
 		return errors.Wrap(err, "state database")
 	}

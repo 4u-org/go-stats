@@ -13,4 +13,6 @@ RUN go build -o /project/go-docker/build/app .
 FROM alpine:latest
 COPY --from=builder /project/go-docker/build/app /project/go-docker/build/app 
 
+VOLUME /project/go-docker/build/app/storage
+
 ENTRYPOINT [ "/project/go-docker/build/app" ]
