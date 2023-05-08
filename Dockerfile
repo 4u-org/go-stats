@@ -14,7 +14,6 @@ FROM alpine:latest
 RUN apk --no-cache add tzdata
 ENV TZ=Europe/London
 
-COPY --from=builder /project/go-docker/build/app /project/go-docker/build/app
+COPY --from=builder /project/go-docker/build/app /gostats
 
-WORKDIR /project/go-docker/build/
-ENTRYPOINT [ "app" ]
+ENTRYPOINT [ "/gostats" ]
