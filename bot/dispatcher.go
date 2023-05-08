@@ -112,7 +112,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 		DataFlags:          []bool{},
 		ChatID:             0,
 		UserID:             0,
-		SessionID:          0,
+		SessionID:          int16(0),
 		ContentID:          "",
 		Language:           "",
 		UserCreatedAt:      nil,
@@ -149,7 +149,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 			userDb.FirstActionTime = info.timestamp
 			userDb.LastActionTime = info.timestamp
 			userDb.RefererID = ""
-			userDb.SessionID = 1
+			userDb.SessionID = int16(1)
 			userDb.SessionRefererID = ""
 			u.db.Create(&userDb)
 		} else if info.updateSession {
