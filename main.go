@@ -31,7 +31,7 @@ func writeEvents(ctx context.Context, clickDb *gorm.DB, clickCh chan database.Ev
 		case event := <-clickCh:
 			events = append(events, event)
 		case <-tick:
-			go clickDb.Create(&events)
+			clickDb.Create(&events)
 			events = []database.Event{}
 		case <-close:
 			clickDb.Create(&events)
