@@ -4,4 +4,4 @@ services:
   go-stats:
     build: .
     volumes:
-      - ~/go-stats/storage:/storage
+      - ~/go-stats/storage:/app/storage

@@ -11,9 +11,11 @@ RUN go build -o /project/go-docker/build/app .
 
 # Copy the build file to alpine image
 FROM alpine:latest
+WORKDIR /app
+
 RUN apk --no-cache add tzdata
 ENV TZ=Europe/London
 
-COPY --from=builder /project/go-docker/build/app /gostats
+COPY --from=builder /project/go-docker/build/app /app/gostats
 
-ENTRYPOINT [ "/gostats" ]
+ENTRYPOINT [ "/app/gostats" ]
