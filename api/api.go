@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"errors"
 	"go-stats/database"
+	"os"
 
 	"github.com/meteran/gnext"
 	"github.com/meteran/gnext/docs"
@@ -56,6 +58,12 @@ func Start(
 
 	r.GET("/ping", api.ping)
 	r.GET("/add_bot", api.addBot)
-	r.Run("127.0.0.1", "8008") // listen and serve on 0.0.0.0:8080
+
+	host := os.Getenv("API_HOST")
+	if host == "" {
+		return errors.New("API_HOST env variable is empty")
+	}
+
+	r.Run(host) // listen and serve on 0.0.0.0:8080
 	return nil
 }
