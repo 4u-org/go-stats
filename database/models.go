@@ -93,7 +93,7 @@ type Event struct {
 	DataFlags          []bool     `gorm:"type:Array(Bool)"`
 	ChatID             int64      `gorm:"default:0"`
 	UserID             int64      `gorm:"default:0"`
-	SessionID          int16      `gorm:"default:-1"`
+	SessionID          int16      `gorm:"type:Int16;default:-1"`
 	ContentID          string     `gorm:"type:lowcardinality;default:''"`
 	Language           string     `gorm:"type:lowcardinality;default:''"`
 	UserCreatedAt      *time.Time `gorm:"type:DateTime('UTC');null"`
