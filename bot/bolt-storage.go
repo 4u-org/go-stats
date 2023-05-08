@@ -296,6 +296,11 @@ func (s *BoltAccessHasher) SetChannelAccessHash(ctx context.Context, userID, cha
 }
 
 func NewBoltSessionStorage(db *bolt.DB, userID int64) *bbolt.SessionStorage {
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(i642b(userID))
+		return err
+	})
+
 	storage := bbolt.NewSessionStorage(db, "session", i642b(userID))
 	return &storage
 }
