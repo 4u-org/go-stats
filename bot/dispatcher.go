@@ -2,7 +2,6 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	"go-stats/database"
 	"strings"
 	"time"
@@ -57,8 +56,8 @@ func (u *UpdateDispatcher) addApi(api *tg.Client) {
 
 // Handle implements UpdateDispatcher.
 func (u UpdateDispatcher) Handle(ctx context.Context, updates tg.UpdatesClass) error {
-	fmt.Println()
-	fmt.Println("Handle", updates.TypeName())
+	// fmt.Println()
+	// fmt.Println("Handle", updates.TypeName())
 	var (
 		e    Entities
 		upds []tg.UpdateClass
@@ -98,7 +97,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 	if update == nil {
 		return nil
 	}
-	fmt.Println(update)
+	// fmt.Println(update)
 	// Handle updates here, e.g., print the update
 	event := database.Event{
 		App:                *u.botApp,
@@ -123,7 +122,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 		Timestamp:          time.Now(),
 	}
 	info := handle(update)
-	fmt.Println("Info from bot: ", info)
+	// fmt.Println("Info from bot: ", info)
 	event.FromBot = info.fromBot
 	event.Data = info.data
 	event.DataLowCardinality = info.dataLowCardinality
@@ -274,7 +273,7 @@ func (u *UpdateDispatcher) handleMessage(ctx context.Context, message tg.Message
 		case *tg.MessageActionChatDeleteUser:
 			return u.updateChatMember(ctx, info.chatID, action.UserID, info, false, true, "", info.userID)
 		case *tg.MessageActionChatMigrateTo:
-			fmt.Println("Migrate to", action.ChannelID)
+			// fmt.Println("Migrate to", action.ChannelID)
 			return u.updateChatID(ctx, info.chatID, action.ChannelID)
 		}
 		return nil

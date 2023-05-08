@@ -51,7 +51,10 @@ func main() {
 
 func run(ctx context.Context) error {
 	// Create a new logger
-	log, _ := zap.NewDevelopment(zap.IncreaseLevel(zapcore.InfoLevel), zap.AddStacktrace(zapcore.FatalLevel))
+	log, _ := zap.NewDevelopment(
+		zap.IncreaseLevel(zapcore.WarnLevel),
+		zap.AddStacktrace(zapcore.FatalLevel),
+	)
 	defer func() { _ = log.Sync() }()
 
 	// Open the postgres database
@@ -114,7 +117,7 @@ func run(ctx context.Context) error {
 	for _, botID := range botIDs {
 		go func(id int64) {
 			if err := bot.RunBot(ctx, stateDb, apiID, apiHash, id, db, clickCh, log, false); err != nil {
-				fmt.Fprintf(os.Stderr, "Error running bot %d: %v\n", id, err)
+				log.Error(fmt.Sprintf("Error running bot %d: %v\n", id, err))
 			}
 		}(botID)
 	}

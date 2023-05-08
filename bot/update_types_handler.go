@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -303,7 +302,7 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		info.dataFlags = append(info.dataFlags, okNew)
 		invite, okInvite := u.GetInvite()
 		if okInvite && invite.TypeID() == tg.ChatInviteExportedTypeID {
-			fmt.Println(invite.(*tg.ChatInviteExported))
+			// fmt.Println(invite.(*tg.ChatInviteExported))
 			invite_hash := strings.Replace(invite.(*tg.ChatInviteExported).Link, "https://t.me/", "", 1)
 			info.dataLowCardinality = append(info.dataLowCardinality, invite_hash)
 		}
@@ -321,7 +320,7 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		info.dataFlags = append(info.dataFlags, u.ViaChatlist)
 		invite, okInvite := u.GetInvite()
 		if okInvite && invite.TypeID() == tg.ChatInviteExportedTypeID {
-			fmt.Println(invite.(*tg.ChatInviteExported))
+			// fmt.Println(invite.(*tg.ChatInviteExported))
 			invite_hash := strings.Replace(invite.(*tg.ChatInviteExported).Link, "https://t.me/", "", 1)
 			info.dataLowCardinality = append(info.dataLowCardinality, invite_hash)
 		}
