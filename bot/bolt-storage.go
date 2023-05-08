@@ -295,7 +295,7 @@ func (s *BoltAccessHasher) SetChannelAccessHash(ctx context.Context, userID, cha
 	})
 }
 
-func NewBoltStorage(db *bolt.DB, userID int64) *bbolt.SessionStorage {
+func NewBoltSessionStorage(db *bolt.DB, userID int64) *bbolt.SessionStorage {
 	storage := bbolt.NewSessionStorage(db, "session", i642b(userID))
 	return &storage
 }

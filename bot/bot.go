@@ -118,7 +118,7 @@ func RunBot(
 	}
 
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
-	session := NewBoltStorage(stateDb, botId)
+	session := NewBoltSessionStorage(stateDb, botId)
 	storage := NewBoltState(stateDb)
 	accessHasher := NewBoltAccessHasher(stateDb)
 	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, log)
