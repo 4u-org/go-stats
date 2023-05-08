@@ -56,6 +56,10 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.E
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
 			}
+			err = conn.Close()
+			if err != nil {
+				log.Error("Error closing clickhouse connection", zap.Error(err))
+			}
 			return
 		}
 	}
