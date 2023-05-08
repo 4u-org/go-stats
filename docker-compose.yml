@@ -4,4 +4,4 @@ services:
   go-stats:
     build: .
     volumes:
-      - storage:/project/go-docker/build/app/storage
+      - storage:/project/go-docker/build/storage
