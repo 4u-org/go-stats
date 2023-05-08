@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func writeEvents(ctx context.Context, clickDb *gorm.DB, clickCh chan database.Event, close chan int) {
+func writeEvents(ctx context.Context, clickDb *gorm.DB, clickCh chan database.Event, close chan int, log *zap.Logger) {
 	tick := time.Tick(time.Second)
 	events := []database.Event{}
 	for {
@@ -31,7 +31,10 @@ func writeEvents(ctx context.Context, clickDb *gorm.DB, clickCh chan database.Ev
 		case event := <-clickCh:
 			events = append(events, event)
 		case <-tick:
-			clickDb.Create(&events)
+			err := clickDb.Create(&events).Error
+			if err != nil {
+				log.Error("Error writing events", zap.Error(err))
+			}
 			events = []database.Event{}
 		case <-close:
 			clickDb.Create(&events)
@@ -81,7 +84,7 @@ func run(ctx context.Context) error {
 		time.Sleep(time.Second)
 		clickClose <- 1
 	}()
-	go writeEvents(ctx, clickDb, clickCh, clickClose)
+	go writeEvents(ctx, clickDb, clickCh, clickClose, log)
 
 	// Get the API ID
 	apiID, err := strconv.Atoi(os.Getenv("APP_ID"))
