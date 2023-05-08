@@ -15,6 +15,5 @@ RUN apk --no-cache add tzdata
 ENV TZ=Europe/London
 
 COPY --from=builder /project/go-docker/build/app /project/go-docker/build/app
-RUN mkdir -p /project/go-docker/build/app/storage
 
 ENTRYPOINT [ "/project/go-docker/build/app" ]
