@@ -20,7 +20,7 @@ type User struct {
 	FirstActionTime  time.Time `gorm:"autoCreateTime"`
 	LastActionTime   time.Time `gorm:"autoCreateTime"`
 	RefererID        string    `gorm:"size:64;default:''"`
-	SessionID        int       `gorm:"default:0"`
+	SessionID        int16     `gorm:"default:0"`
 	SessionRefererID string    `gorm:"size:64;default:''"`
 	Bot              Bot       `gorm:"foreignKey:BotID"`
 }
