@@ -94,6 +94,13 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error migrating db")
 	}
+	postgresDb, err := db.DB()
+	if err != nil {
+		return errors.Wrap(err, "Error getting postgres db")
+	}
+	postgresDb.SetMaxIdleConns(1000)
+	postgresDb.SetMaxOpenConns(1000)
+	defer postgresDb.Close()
 
 	// Open the clickhouse database
 	clickOptions, err := clickhouse.ParseDSN(os.Getenv("CLICKHOUSE_DSN"))
