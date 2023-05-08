@@ -16,4 +16,5 @@ ENV TZ=Europe/London
 
 COPY --from=builder /project/go-docker/build/app /project/go-docker/build/app
 
-ENTRYPOINT [ "/project/go-docker/build/app" ]
+WORKDIR /project/go-docker/build/
+ENTRYPOINT [ "app" ]
