@@ -51,10 +51,10 @@ type ChatMember struct {
 	ID               int64      `gorm:"primaryKey"`
 	ChatID           int64      `gorm:"index:idx_chat_member,unique"`
 	UserID           int64      `gorm:"index:idx_chat_member,unique"`
-	FirstJoinTime    *time.Time `gorm:"type:DateTime('UTC');null;default:null"`
-	LastJoinTime     *time.Time `gorm:"type:DateTime('UTC');null;default:null"`
-	LastLeaveTime    *time.Time `gorm:"type:DateTime('UTC');null;default:null"`
-	LastActionTime   time.Time  `gorm:"type:DateTime('UTC');autoCreateTime"`
+	FirstJoinTime    *time.Time `gorm:"default:null"`
+	LastJoinTime     *time.Time `gorm:"default:null"`
+	LastLeaveTime    *time.Time `gorm:"default:null"`
+	LastActionTime   time.Time  `gorm:"autoCreateTime"`
 	IsMember         bool       `gorm:"default:true"`
 	FirstJoinActorId int64      `gorm:"default:0"`
 	LastJoinActorId  int64      `gorm:"default:0"`
