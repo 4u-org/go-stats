@@ -12,32 +12,47 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/go-faster/errors"
 	"github.com/joho/godotenv"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gorm.io/driver/clickhouse"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func writeEvents(ctx context.Context, clickDb *gorm.DB, clickCh chan database.Event, close chan int, log *zap.Logger) {
+func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan database.Event, close chan int, log *zap.Logger) {
+	query := "INSERT INTO " + (&database.Event{}).TableName()
 	tick := time.Tick(time.Second)
-	events := []database.Event{}
+	batch, err := conn.PrepareBatch(ctx, query)
+	if err != nil {
+		log.Error("Error preparing batch", zap.Error(err))
+	}
+
 	for {
 		select {
 		case event := <-clickCh:
-			events = append(events, event)
+			err := batch.AppendStruct(event)
+			if err != nil {
+				log.Error("Error appending event to batch", zap.Error(err))
+			}
 		case <-tick:
-			err := clickDb.Create(&events).Error
+			err := batch.Send()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
 			}
-			events = []database.Event{}
+			batch, err = conn.PrepareBatch(ctx, query)
+			if err != nil {
+				log.Error("Error preparing batch", zap.Error(err))
+			}
 		case <-close:
-			clickDb.Create(&events)
+			err := batch.Send()
+			if err != nil {
+				log.Error("Error writing events", zap.Error(err))
+			}
 			return
 		}
 	}
@@ -74,9 +89,13 @@ func run(ctx context.Context) error {
 	}
 
 	// Open the clickhouse database
-	clickDb, err := gorm.Open(clickhouse.Open(os.Getenv("CLICKHOUSE_DSN")))
+	clickOptions, err := clickhouse.ParseDSN(os.Getenv("CLICKHOUSE_DSN"))
 	if err != nil {
-		return errors.Wrap(err, "Error connecting to stats db")
+		return errors.Wrap(err, "Error parsing clickhouse DSN")
+	}
+	clickDb, err := clickhouse.Open(clickOptions)
+	if err != nil {
+		return errors.Wrap(err, "Error connecting to clickhouse")
 	}
 	clickCh := make(chan database.Event, 1000)
 	clickClose := make(chan int)
