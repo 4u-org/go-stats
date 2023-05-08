@@ -51,7 +51,7 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.E
 				log.Error("Error preparing batch", zap.Error(err))
 			}
 		case <-close:
-			// Send the batch and return
+			// Send the batch, close the connection and return
 			err := batch.Send()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
