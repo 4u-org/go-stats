@@ -19,7 +19,7 @@ type Api struct {
 	apiID   int
 	apiHash string
 	db      *gorm.DB
-	clickCh chan database.Event
+	clickCh chan *database.Event
 	log     *zap.Logger
 }
 
@@ -29,7 +29,7 @@ func NewApi(
 	apiID int,
 	apiHash string,
 	db *gorm.DB,
-	clickCh chan database.Event,
+	clickCh chan *database.Event,
 	log *zap.Logger,
 ) Api {
 	return Api{
@@ -49,7 +49,7 @@ func Start(
 	apiID int,
 	apiHash string,
 	db *gorm.DB,
-	clickCh chan database.Event,
+	clickCh chan *database.Event,
 	log *zap.Logger,
 ) error {
 	r := gnext.Router(&docs.Options{Servers: []string{}})

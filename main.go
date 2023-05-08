@@ -24,7 +24,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan database.Event, close chan int, log *zap.Logger) {
+func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.Event, close chan int, log *zap.Logger) {
 	query := "INSERT INTO " + (&database.Event{}).TableName()
 	tick := time.Tick(time.Second)
 	batch, err := conn.PrepareBatch(ctx, query)
@@ -35,11 +35,13 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan database.Ev
 	for {
 		select {
 		case event := <-clickCh:
+			// Append the event to the batch
 			err := batch.AppendStruct(event)
 			if err != nil {
 				log.Error("Error appending event to batch", zap.Error(err))
 			}
 		case <-tick:
+			// Send the batch and prepare a new one
 			err := batch.Send()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
@@ -49,6 +51,7 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan database.Ev
 				log.Error("Error preparing batch", zap.Error(err))
 			}
 		case <-close:
+			// Send the batch and return
 			err := batch.Send()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
@@ -97,7 +100,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error connecting to clickhouse")
 	}
-	clickCh := make(chan database.Event, 1000)
+	clickCh := make(chan *database.Event, 1000)
 	clickClose := make(chan int)
 	defer func() {
 		time.Sleep(time.Second)

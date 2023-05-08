@@ -113,7 +113,7 @@ func RunBot(
 	apiHash string,
 	botId int64,
 	db *gorm.DB,
-	clickCh chan database.Event,
+	clickCh chan *database.Event,
 	log *zap.Logger,
 	forget bool,
 ) error {

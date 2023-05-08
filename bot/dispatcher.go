@@ -21,11 +21,11 @@ type UpdateDispatcher struct {
 	botApp   *string
 	db       *gorm.DB
 	api      *tg.Client
-	clickCh  chan database.Event
+	clickCh  chan *database.Event
 	logger   *zap.Logger
 }
 
-func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan database.Event, logger *zap.Logger) UpdateDispatcher {
+func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan *database.Event, logger *zap.Logger) UpdateDispatcher {
 	return UpdateDispatcher{
 		handlers: map[uint32]handler{},
 		botId:    botId,
@@ -167,7 +167,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 		event.UserCreatedAt = &userDb.FirstActionTime
 	}
 
-	u.clickCh <- event
+	u.clickCh <- &event
 
 	// fmt.Println("Update from bot: ", update.TypeName())
 	// fmt.Println("Entities from bot: ", e)
