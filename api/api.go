@@ -15,7 +15,7 @@ import (
 
 type Api struct {
 	ctx     context.Context
-	stateDb *bolt.DB
+	boltDb  *bolt.DB
 	apiID   int
 	apiHash string
 	db      *gorm.DB
@@ -25,7 +25,7 @@ type Api struct {
 
 func NewApi(
 	ctx context.Context,
-	stateDb *bolt.DB,
+	boltDb *bolt.DB,
 	apiID int,
 	apiHash string,
 	db *gorm.DB,
@@ -34,7 +34,7 @@ func NewApi(
 ) Api {
 	return Api{
 		ctx:     ctx,
-		stateDb: stateDb,
+		boltDb:  boltDb,
 		apiID:   apiID,
 		apiHash: apiHash,
 		db:      db,
@@ -45,7 +45,7 @@ func NewApi(
 
 func Start(
 	ctx context.Context,
-	stateDb *bolt.DB,
+	boltDb *bolt.DB,
 	apiID int,
 	apiHash string,
 	db *gorm.DB,
@@ -54,7 +54,7 @@ func Start(
 ) error {
 	r := gnext.Router(&docs.Options{Servers: []string{}})
 	apiLog := log.Named("api")
-	api := NewApi(ctx, stateDb, apiID, apiHash, db, clickCh, apiLog)
+	api := NewApi(ctx, boltDb, apiID, apiHash, db, clickCh, apiLog)
 
 	r.GET("/ping", api.ping)
 	r.GET("/add_bot", api.addBot)

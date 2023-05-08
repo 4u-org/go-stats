@@ -30,7 +30,7 @@ func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 	}
 
 	// Login bot
-	if err := bot.LoginBot(a.ctx, a.apiID, a.apiHash, q.Token, a.log); err != nil {
+	if err := bot.LoginBot(a.ctx, a.boltDb, a.apiID, a.apiHash, q.Token, a.log); err != nil {
 		a.log.Info("Error logging in bot", zap.Error(err))
 		return &Response{
 			Ok:      false,
@@ -53,7 +53,7 @@ func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 	}
 
 	// Start bot
-	go bot.RunBot(a.ctx, a.stateDb, a.apiID, a.apiHash, botIdInt, a.db, a.clickCh, a.log, true)
+	go bot.RunBot(a.ctx, a.boltDb, a.apiID, a.apiHash, botIdInt, a.db, a.clickCh, a.log, true)
 
 	return &Response{Ok: true}, http.StatusOK
 }

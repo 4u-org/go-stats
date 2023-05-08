@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gotd/td/session"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/telegram/updates"
 	updhook "github.com/gotd/td/telegram/updates/hook"
@@ -57,17 +56,23 @@ func UpdateDb(
 
 func LoginBot(
 	ctx context.Context,
+	boltDb *bolt.DB,
 	apiID int,
 	apiHash string,
 	token string,
 	log *zap.Logger,
 ) error {
 	botId := strings.Split(token, ":")[0]
-	session := session.FileStorage{Path: "sessions/session_" + botId}
+	botIdInt, err := strconv.ParseInt(botId, 10, 64)
+	if err != nil {
+		return errors.Wrap(err, "Invalid token: bot id is not int")
+	}
+
+	session := NewBoltSessionStorage(boltDb, botIdInt)
 
 	client := telegram.NewClient(apiID, apiHash, telegram.Options{
 		Logger:         log,
-		SessionStorage: &session,
+		SessionStorage: session,
 	})
 
 	return client.Run(ctx, func(ctx context.Context) error {
@@ -103,7 +108,7 @@ func LoginBot(
 
 func RunBot(
 	ctx context.Context,
-	stateDb *bolt.DB,
+	boltDb *bolt.DB,
 	apiID int,
 	apiHash string,
 	botId int64,
@@ -118,9 +123,9 @@ func RunBot(
 	}
 
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
-	session := NewBoltSessionStorage(stateDb, botId)
-	storage := NewBoltState(stateDb)
-	accessHasher := NewBoltAccessHasher(stateDb)
+	session := NewBoltSessionStorage(boltDb, botId)
+	storage := NewBoltState(boltDb)
+	accessHasher := NewBoltAccessHasher(boltDb)
 	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, log)
 
 	gaps := updates.New(updates.Config{
