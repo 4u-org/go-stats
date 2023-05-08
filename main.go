@@ -52,7 +52,7 @@ func main() {
 func run(ctx context.Context) error {
 	// Create a new logger
 	log, _ := zap.NewDevelopment(
-		zap.IncreaseLevel(zapcore.InfoLevel),
+		zap.IncreaseLevel(zapcore.WarnLevel),
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)
 	defer func() { _ = log.Sync() }()
