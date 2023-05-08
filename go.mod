@@ -4,6 +4,8 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.0
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/gotd/contrib v0.17.0
 	github.com/gotd/td v0.81.0
 	github.com/meteran/gnext v0.8.0
 	github.com/pkg/errors v0.9.1
@@ -22,15 +24,14 @@ require (
 	github.com/getkin/kin-openapi v0.112.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
+	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.13.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gotd/contrib v0.17.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
