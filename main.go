@@ -111,12 +111,12 @@ func run(ctx context.Context) error {
 	}
 
 	// Run each bot in a separate goroutine
-	for _, botTD := range botIDs {
+	for _, botID := range botIDs {
 		go func(id int64) {
 			if err := bot.RunBot(ctx, stateDb, apiID, apiHash, id, db, clickCh, log, false); err != nil {
-				fmt.Fprintf(os.Stderr, "Error running bot: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Error running bot %d: %v\n", id, err)
 			}
-		}(botTD)
+		}(botID)
 	}
 
 	// Run the API
