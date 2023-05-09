@@ -199,7 +199,11 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		info.userID = u.UserID
 		info.fromBot = false
 		info.updateSession = true
-		chatType := strings.Replace(u.PeerType.TypeName(), "InlineQueryPeerType", "", 1)
+		peerType, okPeerType := u.GetPeerType()
+		chatType := ""
+		if okPeerType {
+			chatType = strings.Replace(peerType.TypeName(), "InlineQueryPeerType", "", 1)
+		}
 		info.dataLowCardinality = append(info.dataLowCardinality, chatType)
 		info.dataLowCardinality = append(info.dataLowCardinality, u.Offset)
 		info.dataInt = append(info.dataInt, int64(utf8.RuneCountInString(u.Query)))
