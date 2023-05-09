@@ -98,7 +98,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error getting postgres db")
 	}
-	postgresDb.SetMaxIdleConns(100)
+	postgresDb.SetMaxIdleConns(10)
 	postgresDb.SetMaxOpenConns(500)
 	defer postgresDb.Close()
 
