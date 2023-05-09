@@ -98,8 +98,8 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error getting postgres db")
 	}
-	postgresDb.SetMaxIdleConns(1000)
-	postgresDb.SetMaxOpenConns(1000)
+	postgresDb.SetMaxIdleConns(100)
+	postgresDb.SetMaxOpenConns(500)
 	defer postgresDb.Close()
 
 	// Open the clickhouse database
