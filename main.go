@@ -147,7 +147,7 @@ func run(ctx context.Context) error {
 	// Get the bot IDs
 	botIDs := []int64{}
 	botQuery := &database.Bot{LoggedIn: true}
-	err = db.Model(&botQuery).Where(&botQuery).Pluck("id", &botIDs).Error
+	err = db.Model(&botQuery).Where("logged_in = ?", true).Pluck("id", &botIDs).Error
 	if err != nil {
 		return errors.Wrap(err, "Error getting bot IDs")
 	}
