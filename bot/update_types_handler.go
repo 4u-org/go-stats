@@ -53,6 +53,9 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.chatID = getPeerID(peerID)
 			info.dataLowCardinality = append(info.dataLowCardinality, peerID.TypeName())
 		}
+		if m.PeerID.TypeID() == tg.PeerChannelTypeID {
+			info.ignoreUpdate = true
+		}
 		return info
 	case *tg.MessageService:
 		info.fromBot = m.GetOut()
@@ -126,7 +129,7 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.dataLowCardinality = append(info.dataLowCardinality, peer.TypeName())
 		}
 
-		if !m.Post && !okViaBot && m.PeerID.TypeID() == tg.PeerChannelTypeID {
+		if !m.Post && !okViaBot && m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
 		}
 		return info
