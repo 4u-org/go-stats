@@ -111,6 +111,7 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 		DataInt:            []int64{},
 		DataFlags:          []bool{},
 		ChatID:             0,
+		ChatType:           "",
 		UserID:             0,
 		SessionID:          int16(0),
 		ContentID:          "",
