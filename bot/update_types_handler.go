@@ -201,11 +201,27 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		info.userID = u.UserID
 		info.fromBot = false
 		info.updateSession = true
+
 		peerType, okPeerType := u.GetPeerType()
+		inlineChatType := ""
 		if okPeerType {
-			info.chatType = strings.Replace(peerType.TypeName(), "InlineQueryPeerType", "", 1)
+			switch peerType.TypeID() {
+			case tg.InlineQueryPeerTypeBroadcastTypeID:
+				info.chatType = "channel"
+			case tg.InlineQueryPeerTypeChatTypeID:
+				info.chatType = "group"
+			case tg.InlineQueryPeerTypeMegagroupTypeID:
+				info.chatType = "supergroup"
+			case tg.InlineQueryPeerTypePMTypeID:
+				info.chatType = "private"
+			case tg.InlineQueryPeerTypeBotPMTypeID:
+				info.chatType = "private"
+			case tg.InlineQueryPeerTypeSameBotPMTypeID:
+				info.chatType = "private"
+			}
+			inlineChatType = peerType.TypeName()
 		}
-		info.dataLowCardinality = append(info.dataLowCardinality, "") // Previously was chatType
+		info.dataLowCardinality = append(info.dataLowCardinality, inlineChatType) // Previously was chatType
 		info.dataLowCardinality = append(info.dataLowCardinality, u.Offset)
 		info.dataInt = append(info.dataInt, int64(utf8.RuneCountInString(u.Query)))
 		_, okGeo := u.GetGeo()
