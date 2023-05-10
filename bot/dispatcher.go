@@ -133,6 +133,26 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 	event.UserID = info.userID
 	event.Timestamp = info.timestamp
 
+	if info.chatID != 0 {
+		_, okUser := e.Users[info.chatID]
+		if okUser {
+			info.chatType = "private"
+		}
+		_, okChat := e.Chats[info.chatID]
+		if okChat {
+			info.chatType = "group"
+		}
+
+		channel, okChannel := e.Channels[info.chatID]
+		if okChannel && channel.GetBroadcast() {
+			info.chatType = "channel"
+		}
+		if okChannel && channel.GetMegagroup() {
+			info.chatType = "supergroup"
+		}
+	}
+	event.ChatType = info.chatType
+
 	if event.UserID != 0 {
 		// TODO: Use separate function for this
 		if user, okUser := e.Users[event.UserID]; okUser {
@@ -302,6 +322,7 @@ func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, 
 		return tx.Error
 	}
 	if tx.Error == gorm.ErrRecordNotFound {
+		chat.ChatType = info.chatType
 		chat.FirstActionTime = info.timestamp
 		chat.LastActionTime = info.timestamp
 		chat.LastUpdateTime = info.timestamp
@@ -312,6 +333,7 @@ func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, 
 	}
 	chat.LastActionTime = max(chat.LastActionTime, info.timestamp)
 	if !info.timestamp.Before(chat.LastUpdateTime) && (canWrite || ban) {
+		chat.ChatType = info.chatType
 		chat.LastUpdateTime = info.timestamp
 		chat.CanWrite = !ban && (chat.CanWrite || canWrite)
 		chat.WasBanned = chat.WasBanned || ban

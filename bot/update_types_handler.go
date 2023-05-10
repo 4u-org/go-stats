@@ -13,6 +13,7 @@ type ExtractedInfo struct {
 	fromBot            bool
 	userID             int64
 	chatID             int64
+	chatType           string
 	updateSession      bool
 	data               []string
 	dataLowCardinality []string
@@ -140,6 +141,7 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		fromBot:            false,
 		userID:             0,
 		chatID:             0,
+		chatType:           "",
 		updateSession:      false,
 		data:               []string{},
 		dataLowCardinality: []string{},
@@ -200,11 +202,10 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		info.fromBot = false
 		info.updateSession = true
 		peerType, okPeerType := u.GetPeerType()
-		chatType := ""
 		if okPeerType {
-			chatType = strings.Replace(peerType.TypeName(), "InlineQueryPeerType", "", 1)
+			info.chatType = strings.Replace(peerType.TypeName(), "InlineQueryPeerType", "", 1)
 		}
-		info.dataLowCardinality = append(info.dataLowCardinality, chatType)
+		info.dataLowCardinality = append(info.dataLowCardinality, "") // Previously was chatType
 		info.dataLowCardinality = append(info.dataLowCardinality, u.Offset)
 		info.dataInt = append(info.dataInt, int64(utf8.RuneCountInString(u.Query)))
 		_, okGeo := u.GetGeo()

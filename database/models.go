@@ -33,12 +33,13 @@ type Chat struct {
 	ID              int64     `gorm:"primaryKey"`
 	BotID           int64     `gorm:"index:idx_bot_chat,unique"`
 	ChatID          int64     `gorm:"index:idx_bot_chat,unique"`
+	ChatType        string    `gorm:"size:16;default:'';index:idx_chat_type_can_write"`
 	MigratedFrom    int64     `gorm:"default:0"`
 	FirstActionTime time.Time `gorm:"autoCreateTime"`
 	LastActionTime  time.Time `gorm:"autoCreateTime"`
 	LastUpdateTime  time.Time `gorm:"autoCreateTime"`
 	RefererID       string    `gorm:"size:64;default:''"`
-	CanWrite        bool      `gorm:"default:false"`
+	CanWrite        bool      `gorm:"default:false;index:idx_chat_type_can_write"`
 	WasBanned       bool      `gorm:"default:false"`
 	Bot             Bot       `gorm:"foreignKey:BotID"`
 }
@@ -92,6 +93,7 @@ type Event struct {
 	DataInt            []int64    `gorm:"type:Array(Int64)"`
 	DataFlags          []bool     `gorm:"type:Array(Bool)"`
 	ChatID             int64      `gorm:"default:0"`
+	ChatType           string     `gorm:"type:lowcardinality;default:''"`
 	UserID             int64      `gorm:"default:0"`
 	SessionID          int16      `gorm:"type:Int16;default:-1"`
 	ContentID          string     `gorm:"type:lowcardinality;default:''"`
