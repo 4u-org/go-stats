@@ -159,6 +159,7 @@ func run(ctx context.Context) error {
 				log.Error(fmt.Sprintf("Error running bot %d: %v\n", id, err))
 			}
 		}(botID)
+		time.Sleep(time.Millisecond * 3)
 	}
 
 	// Run the API
