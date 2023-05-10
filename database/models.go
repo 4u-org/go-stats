@@ -33,13 +33,13 @@ type Chat struct {
 	ID              int64     `gorm:"primaryKey"`
 	BotID           int64     `gorm:"index:idx_bot_chat,unique"`
 	ChatID          int64     `gorm:"index:idx_bot_chat,unique"`
-	ChatType        string    `gorm:"size:16;default:'';index:idx_chat_type_can_write"`
+	ChatType        string    `gorm:"size:16;default:''"`
 	MigratedFrom    int64     `gorm:"default:0"`
 	FirstActionTime time.Time `gorm:"autoCreateTime"`
 	LastActionTime  time.Time `gorm:"autoCreateTime"`
 	LastUpdateTime  time.Time `gorm:"autoCreateTime"`
 	RefererID       string    `gorm:"size:64;default:''"`
-	CanWrite        bool      `gorm:"default:false;index:idx_chat_type_can_write"`
+	CanWrite        bool      `gorm:"default:false"`
 	WasBanned       bool      `gorm:"default:false"`
 	Bot             Bot       `gorm:"foreignKey:BotID"`
 }
