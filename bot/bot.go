@@ -122,6 +122,11 @@ func RunBot(
 		return errors.Wrap(errBot, "Bot not found")
 	}
 
+	namedLog := log.Named(strconv.FormatInt(botId, 10))
+	if botId == 1631494349 {
+		namedLog = namedLog.WithOptions(zap.IncreaseLevel(zap.InfoLevel))
+	}
+
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
 	session := NewBoltSessionStorage(boltDb, botId)
 	storage := NewBoltState(boltDb)
@@ -132,11 +137,11 @@ func RunBot(
 		Storage:      storage,
 		AccessHasher: accessHasher,
 		Handler:      handler, //handler,
-		Logger:       log.Named(strconv.FormatInt(botId, 10)),
+		Logger:       namedLog,
 	})
 
 	client := telegram.NewClient(apiID, apiHash, telegram.Options{
-		Logger:         log,
+		Logger:         namedLog,
 		SessionStorage: session,
 		UpdateHandler:  gaps,
 		Middlewares: []telegram.Middleware{
