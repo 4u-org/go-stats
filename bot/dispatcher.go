@@ -188,7 +188,9 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 		event.UserCreatedAt = &userDb.FirstActionTime
 	}
 
-	u.clickCh <- &event
+	if !info.ignoreUpdate {
+		u.clickCh <- &event
+	}
 
 	// fmt.Println("Update from bot: ", update.TypeName())
 	// fmt.Println("Entities from bot: ", e)

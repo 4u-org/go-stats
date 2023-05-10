@@ -53,7 +53,7 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.chatID = getPeerID(peerID)
 			info.dataLowCardinality = append(info.dataLowCardinality, peerID.TypeName())
 		}
-		if m.PeerID.TypeID() == tg.PeerChannelTypeID {
+		if !ok || peerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
 		}
 		return info
