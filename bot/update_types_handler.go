@@ -212,7 +212,7 @@ func handle(update tg.UpdateClass) *ExtractedInfo {
 		return &info
 	case *tg.UpdateBotInlineSend:
 		info.userID = u.UserID
-		info.fromBot = false
+		info.fromBot = true
 		info.updateSession = true
 		info.dataLowCardinality = append(info.dataLowCardinality, u.ID)
 		info.dataInt = append(info.dataInt, int64(utf8.RuneCountInString(u.Query)))
