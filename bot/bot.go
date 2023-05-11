@@ -131,7 +131,7 @@ func RunBot(
 	session := NewBoltSessionStorage(boltDb, botId)
 	storage := NewBoltState(boltDb)
 	accessHasher := NewBoltAccessHasher(boltDb)
-	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, log)
+	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, namedLog)
 
 	gaps := updates.New(updates.Config{
 		Storage:      storage,
@@ -160,19 +160,19 @@ func RunBot(
 
 		if !status.Authorized {
 			if err := db.Where("id = ?", botId).Updates(database.Bot{LoggedIn: false}).Error; err != nil {
-				log.Error("Failed to update bot in db", zap.Error(err))
+				namedLog.Error("Failed to update bot in db", zap.Error(err))
 			}
 			return errors.New("Bot not authorized. Use LoginBot method")
 		}
 
-		log.Info("Bot login restored", zap.String("name", status.User.Username))
+		namedLog.Info("Bot login restored", zap.String("name", status.User.Username))
 
 		// Notify update manager about authentication.
 		return gaps.Run(ctx, client.API(), status.User.ID, updates.AuthOptions{
 			IsBot:  status.User.Bot,
 			Forget: forget,
 			OnStart: func(ctx context.Context) {
-				log.Info("Gaps started")
+				namedLog.Info("Gaps started")
 			},
 		})
 	})
