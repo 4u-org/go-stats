@@ -27,7 +27,7 @@ import (
 func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.Event, close chan int, log *zap.Logger) {
 	query := "INSERT INTO " + (&database.Event{}).TableName()
 	tick := time.Tick(time.Second * 5)
-	batch, err := conn.PrepareBatch(ctx, query)
+	batch, err := conn.PrepareBatch(context.TODO(), query)
 	if err != nil {
 		log.Error("Error preparing batch", zap.Error(err))
 	}
@@ -46,7 +46,7 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.E
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
 			}
-			batch, err = conn.PrepareBatch(ctx, query)
+			batch, err = conn.PrepareBatch(context.TODO(), query)
 			if err != nil {
 				log.Error("Error preparing batch", zap.Error(err))
 			}
