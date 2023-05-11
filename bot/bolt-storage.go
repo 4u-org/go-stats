@@ -174,7 +174,7 @@ func (s *BoltState) SetDateSeq(ctx context.Context, userID int64, date, seq int)
 
 func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) (int, bool, error) {
 	tx, err := s.db.Begin(false)
-	if err != nil {
+	if err != nil || true {
 		return 0, false, err
 	}
 	defer func() { _ = tx.Rollback() }()
