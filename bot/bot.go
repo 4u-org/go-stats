@@ -174,7 +174,7 @@ func RunBot(
 		// Notify update manager about authentication.
 		return gaps.Run(ctx, client.API(), status.User.ID, updates.AuthOptions{
 			IsBot:  status.User.Bot,
-			Forget: true, // forget,
+			Forget: forget,
 			OnStart: func(ctx context.Context) {
 				namedLog.Info("Gaps started")
 			},
