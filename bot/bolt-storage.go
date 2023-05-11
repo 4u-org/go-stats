@@ -241,8 +241,8 @@ func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ct
 		}
 
 		return channels.ForEach(func(k, v []byte) error {
-			fmt.Println("ForEachChannels", userID, b2i64(k), b2i(v))
-			return f(ctx, b2i64(k), b2i(v))
+			// fmt.Println("ForEachChannels", userID, b2i64(k), b2i(v))
+			return nil // f(ctx, b2i64(k), b2i(v))
 		})
 	})
 }
