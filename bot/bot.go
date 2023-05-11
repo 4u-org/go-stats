@@ -132,7 +132,7 @@ func RunBot(
 	session := NewBoltSessionStorage(boltDb, botId)
 	storage := NewBoltState(boltDb)
 	accessHasher := NewBoltAccessHasher(boltDb)
-	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, namedLog)
+	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
 
 	gaps := updates.New(updates.Config{
 		Storage:      storage,
