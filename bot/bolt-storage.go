@@ -210,7 +210,7 @@ func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ct
 
 	cmap, ok := s.channels[userID]
 	if !ok {
-		return errors.New("channels map does not exist")
+		return nil
 	}
 
 	for id, pts := range cmap {
