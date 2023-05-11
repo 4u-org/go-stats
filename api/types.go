@@ -9,6 +9,7 @@ type Response struct {
 
 type Bot struct {
 	gnext.Query
-	App   string `form:"app"`
-	Token string `form:"token"`
+	App       string `form:"app"`
+	Token     string `form:"token"`
+	ForceAuth bool   `form:"force_auth"`
 }

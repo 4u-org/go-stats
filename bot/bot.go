@@ -61,6 +61,7 @@ func LoginBot(
 	apiHash string,
 	token string,
 	log *zap.Logger,
+	forceAuth bool,
 ) error {
 	botId := strings.Split(token, ":")[0]
 	botIdInt, err := strconv.ParseInt(botId, 10, 64)
@@ -84,7 +85,10 @@ func LoginBot(
 
 		// Already authorized.
 		if status.Authorized {
-			return nil
+			if !forceAuth {
+				return nil
+			}
+			log.Warn("Already authorized")
 		}
 
 		// Login.
