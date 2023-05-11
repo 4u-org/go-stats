@@ -123,8 +123,8 @@ func RunBot(
 	}
 
 	namedLog := log.Named(strconv.FormatInt(botId, 10))
-	if botId == 1631494349 {
-		namedLog = namedLog.WithOptions(zap.IncreaseLevel(zap.InfoLevel))
+	if botId != 1631494349 {
+		namedLog = namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel))
 	}
 
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
