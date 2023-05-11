@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"sync"
 
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/gotd/contrib/bbolt"
 	"github.com/gotd/td/telegram/updates"
+	"github.com/pkg/errors"
 )
 
 func i2b(v int) []byte { b := make([]byte, 8); binary.LittleEndian.PutUint64(b, uint64(v)); return b }
@@ -26,10 +28,14 @@ func b2i64(b []byte) int64 { return int64(binary.LittleEndian.Uint64(b)) }
 var _ updates.StateStorage = (*BoltState)(nil)
 
 type BoltState struct {
-	db *bolt.DB
+	db       *bolt.DB
+	channels map[int64]map[int64]int
+	mux      sync.Mutex
 }
 
-func NewBoltState(db *bolt.DB) *BoltState { return &BoltState{db} }
+func NewBoltState(db *bolt.DB) *BoltState {
+	return &BoltState{db: db, channels: map[int64]map[int64]int{}}
+}
 
 func (s *BoltState) GetState(ctx context.Context, userID int64) (state updates.State, found bool, err error) {
 	tx, err := s.db.Begin(false)
@@ -172,7 +178,51 @@ func (s *BoltState) SetDateSeq(ctx context.Context, userID int64, date, seq int)
 	})
 }
 
-func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) (int, bool, error) {
+func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) (pts int, found bool, err error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	channels, ok := s.channels[userID]
+	if !ok {
+		return 0, false, nil
+	}
+
+	pts, found = channels[channelID]
+	return
+}
+
+func (s *BoltState) SetChannelPtsM(ctx context.Context, userID, channelID int64, pts int) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	channels, ok := s.channels[userID]
+	if !ok {
+		return errors.New("user internalState does not exist")
+	}
+
+	channels[channelID] = pts
+	return nil
+}
+
+func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	cmap, ok := s.channels[userID]
+	if !ok {
+		return errors.New("channels map does not exist")
+	}
+
+	for id, pts := range cmap {
+		if err := f(ctx, id, pts); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *BoltState) GetChannelPtsT(ctx context.Context, userID, channelID int64) (int, bool, error) {
 	tx, err := s.db.Begin(false)
 	if err != nil || true {
 		return 0, false, err
@@ -197,6 +247,7 @@ func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) 
 }
 
 func (s *BoltState) SetChannelPts(ctx context.Context, userID, channelID int64, pts int) error {
+	s.SetChannelPtsM(ctx, userID, channelID, pts)
 	return s.db.Update(func(tx *bolt.Tx) error {
 		user, err := tx.CreateBucketIfNotExists(i642b(userID))
 		if err != nil {
@@ -228,7 +279,7 @@ func (s *BoltState) DeleteChannelPts(ctx context.Context, userID, channelID int6
 	})
 }
 
-func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
+func (s *BoltState) ForEachChannelsT(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		user, err := tx.CreateBucketIfNotExists(i642b(userID))
 		if err != nil {
@@ -242,7 +293,7 @@ func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ct
 
 		return channels.ForEach(func(k, v []byte) error {
 			// fmt.Println("ForEachChannels", userID, b2i64(k), b2i(v))
-			return nil // f(ctx, b2i64(k), b2i(v))
+			return f(ctx, b2i64(k), b2i(v))
 		})
 	})
 }
