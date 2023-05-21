@@ -216,8 +216,11 @@ func (u *UpdateDispatcher) highLevelDispatch(ctx context.Context, e Entities, up
 			return err
 		}
 	case *tg.UpdateChannelParticipant:
-		_, okOld := upd.GetPrevParticipant()
-		_, okNew := upd.GetNewParticipant()
+		oldMember, okOld := upd.GetPrevParticipant()
+		newMember, okNew := upd.GetNewParticipant()
+		okOld = okOld && oldMember.TypeID() != tg.ChannelParticipantLeftTypeID && oldMember.TypeID() != tg.ChannelParticipantBannedTypeID
+		okNew = okNew && newMember.TypeID() != tg.ChannelParticipantLeftTypeID && newMember.TypeID() != tg.ChannelParticipantBannedTypeID
+
 		if upd.UserID == u.botId {
 			if err := u.updateChat(ctx, info, okNew, okOld && !okNew); err != nil {
 				return err

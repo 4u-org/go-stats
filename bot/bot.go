@@ -112,30 +112,30 @@ func LoginBot(
 
 func RunBot(
 	ctx context.Context,
-	boltDb *bolt.DB,
+	stateDB *bolt.DB,
 	apiID int,
 	apiHash string,
-	botId int64,
+	botID int64,
 	db *gorm.DB,
-	clickCh chan *database.Event,
+	clickCH chan *database.Event,
 	log *zap.Logger,
 	forget bool,
 ) error {
-	bot := database.Bot{ID: botId}
+	bot := database.Bot{ID: botID}
 	if errBot := db.First(&bot).Error; errBot != nil {
 		return errors.Wrap(errBot, "Bot not found")
 	}
 
-	namedLog := log.Named(strconv.FormatInt(botId, 10))
-	if botId != 1264915325 {
+	namedLog := log.Named(strconv.FormatInt(botID, 10))
+	if botID != 1264915325 {
 		namedLog = namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel))
 	}
 
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
-	session := NewBoltSessionStorage(boltDb, botId)
-	storage := NewBoltState(boltDb)
-	accessHasher := NewBoltAccessHasher(boltDb)
-	handler := NewUpdateDispatcher(botId, bot.App, db, clickCh, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
+	session := NewBoltSessionStorage(stateDB, botID)
+	storage := NewBoltState(stateDB)
+	accessHasher := NewBoltAccessHasher(stateDB)
+	handler := NewUpdateDispatcher(botID, bot.App, db, clickCH, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
 
 	gaps := updates.New(updates.Config{
 		Storage:      storage,
@@ -163,7 +163,7 @@ func RunBot(
 		}
 
 		if !status.Authorized {
-			if err := db.Where("id = ?", botId).Updates(database.Bot{LoggedIn: false}).Error; err != nil {
+			if err := db.Where("id = ?", botID).Updates(database.Bot{LoggedIn: false}).Error; err != nil {
 				namedLog.Error("Failed to update bot in db", zap.Error(err))
 			}
 			return errors.New("Bot not authorized. Use LoginBot method")
