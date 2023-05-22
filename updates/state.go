@@ -3,6 +3,7 @@ package updates
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-faster/errors"
@@ -39,6 +40,7 @@ type internalState struct {
 	pts, qts, seq *sequenceBox
 	date          int
 	idleTimeout   *time.Timer
+	diffMux       sync.Mutex
 
 	// Channel states.
 	channels map[int64]*channelState
@@ -349,6 +351,9 @@ func (s *internalState) getDifference(ctx context.Context) error {
 }
 
 func (s *internalState) getDifferenceSync(ctx context.Context) error {
+	s.diffMux.Lock()
+	defer s.diffMux.Unlock()
+
 	ctx, span := s.tracer.Start(ctx, "getDifference")
 	defer span.End()
 
