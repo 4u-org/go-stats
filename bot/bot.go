@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"strings"
 
+	"go-stats/updates"
+	updhook "go-stats/updates/hook"
+
 	"github.com/gotd/td/telegram"
-	"github.com/gotd/td/telegram/updates"
-	updhook "github.com/gotd/td/telegram/updates/hook"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"

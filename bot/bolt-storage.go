@@ -8,8 +8,9 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 
+	"go-stats/updates"
+
 	"github.com/gotd/contrib/bbolt"
-	"github.com/gotd/td/telegram/updates"
 	"github.com/pkg/errors"
 )
 
