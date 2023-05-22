@@ -208,6 +208,11 @@ func (s *channelState) applyPts(ctx context.Context, state int, updates []update
 }
 
 func (s *channelState) getDifference(ctx context.Context) error {
+	s.getDifferenceSync(ctx)
+	return nil
+}
+
+func (s *channelState) getDifferenceSync(ctx context.Context) error {
 	ctx, span := s.tracer.Start(ctx, "channelState.getDifference")
 	defer span.End()
 	s.pts.gaps.Clear()
