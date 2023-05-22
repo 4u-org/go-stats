@@ -179,7 +179,7 @@ func (s *BoltState) SetDateSeq(ctx context.Context, userID int64, date, seq int)
 	})
 }
 
-func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) (pts int, found bool, err error) {
+func (s *BoltState) GetChannelPtsM(ctx context.Context, userID, channelID int64) (pts int, found bool, err error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -205,7 +205,7 @@ func (s *BoltState) SetChannelPtsM(ctx context.Context, userID, channelID int64,
 	return nil
 }
 
-func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
+func (s *BoltState) ForEachChannelsM(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -223,7 +223,7 @@ func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ct
 	return nil
 }
 
-func (s *BoltState) GetChannelPtsT(ctx context.Context, userID, channelID int64) (int, bool, error) {
+func (s *BoltState) GetChannelPts(ctx context.Context, userID, channelID int64) (int, bool, error) {
 	tx, err := s.db.Begin(false)
 	if err != nil || true {
 		return 0, false, err
@@ -248,7 +248,7 @@ func (s *BoltState) GetChannelPtsT(ctx context.Context, userID, channelID int64)
 }
 
 func (s *BoltState) SetChannelPts(ctx context.Context, userID, channelID int64, pts int) error {
-	s.SetChannelPtsM(ctx, userID, channelID, pts)
+	// s.SetChannelPtsM(ctx, userID, channelID, pts)
 	return s.db.Update(func(tx *bolt.Tx) error {
 		user, err := tx.CreateBucketIfNotExists(i642b(userID))
 		if err != nil {
@@ -280,7 +280,7 @@ func (s *BoltState) DeleteChannelPts(ctx context.Context, userID, channelID int6
 	})
 }
 
-func (s *BoltState) ForEachChannelsT(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
+func (s *BoltState) ForEachChannels(ctx context.Context, userID int64, f func(ctx context.Context, channelID int64, pts int) error) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		user, err := tx.CreateBucketIfNotExists(i642b(userID))
 		if err != nil {

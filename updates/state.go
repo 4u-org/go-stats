@@ -76,8 +76,8 @@ type stateConfig struct {
 
 func newState(ctx context.Context, cfg stateConfig) *internalState {
 	s := &internalState{
-		externalQueue: make(chan tracedUpdate, 10),
-		internalQueue: make(chan tracedUpdate, 10),
+		externalQueue: make(chan tracedUpdate, 1000),
+		internalQueue: make(chan tracedUpdate, 1000),
 
 		date:        cfg.State.Date,
 		idleTimeout: time.NewTimer(idleTimeout),
