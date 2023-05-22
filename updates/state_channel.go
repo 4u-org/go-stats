@@ -29,7 +29,7 @@ type channelState struct {
 	pts         *sequenceBox
 	idleTimeout *time.Timer
 	diffTimeout time.Time
-	diffMux     sync.Mutex
+	diffMux     *sync.Mutex
 
 	// Immutable fields.
 	channelID  int64
@@ -65,6 +65,7 @@ func newChannelState(cfg channelStateConfig) *channelState {
 		out:     cfg.Out,
 
 		idleTimeout: time.NewTimer(idleTimeout),
+		diffMux:     &sync.Mutex{},
 
 		channelID:  cfg.ChannelID,
 		accessHash: cfg.AccessHash,

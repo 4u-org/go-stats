@@ -40,7 +40,7 @@ type internalState struct {
 	pts, qts, seq *sequenceBox
 	date          int
 	idleTimeout   *time.Timer
-	diffMux       sync.Mutex
+	diffMux       *sync.Mutex
 
 	// Channel states.
 	channels map[int64]*channelState
@@ -83,6 +83,7 @@ func newState(ctx context.Context, cfg stateConfig) *internalState {
 
 		date:        cfg.State.Date,
 		idleTimeout: time.NewTimer(idleTimeout),
+		diffMux:     &sync.Mutex{},
 
 		channels: make(map[int64]*channelState),
 
