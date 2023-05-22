@@ -2,6 +2,7 @@ package updates
 
 import (
 	"context"
+	"math/rand"
 	"sort"
 	"time"
 
@@ -25,6 +26,11 @@ type sequenceConfig struct {
 	Apply        func(ctx context.Context, state int, updates []update) error
 	Logger       *zap.Logger
 	Tracer       trace.Tracer
+}
+
+func newIdleTimeout(multiply int) time.Duration {
+	mult := time.Duration(multiply)
+	return idleTimeout*mult + time.Duration(rand.Intn(15*60*multiply))*time.Minute
 }
 
 func newSequenceBox(cfg sequenceConfig) *sequenceBox {

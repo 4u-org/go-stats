@@ -64,7 +64,7 @@ func newChannelState(cfg channelStateConfig) *channelState {
 		updates: make(chan channelUpdate, 10),
 		out:     cfg.Out,
 
-		idleTimeout: time.NewTimer(idleTimeout),
+		idleTimeout: time.NewTimer(newIdleTimeout(4)),
 		diffMux:     &sync.Mutex{},
 
 		channelID:  cfg.ChannelID,

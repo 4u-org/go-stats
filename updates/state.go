@@ -82,7 +82,7 @@ func newState(ctx context.Context, cfg stateConfig) *internalState {
 		internalQueue: make(chan tracedUpdate, 10),
 
 		date:        cfg.State.Date,
-		idleTimeout: time.NewTimer(idleTimeout),
+		idleTimeout: time.NewTimer(newIdleTimeout(1)),
 		diffMux:     &sync.Mutex{},
 
 		channels: make(map[int64]*channelState),
