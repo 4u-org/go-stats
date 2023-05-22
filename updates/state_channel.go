@@ -208,7 +208,7 @@ func (s *channelState) applyPts(ctx context.Context, state int, updates []update
 }
 
 func (s *channelState) getDifference(ctx context.Context) error {
-	s.getDifferenceSync(ctx)
+	go s.getDifferenceSync(ctx)
 	return nil
 }
 
