@@ -360,8 +360,10 @@ func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, 
 		chat.WasBanned = ban
 		return u.db.Create(&chat).Error
 	}
+
 	chat.LastActionTime = max(chat.LastActionTime, info.timestamp)
-	if !info.timestamp.Before(chat.LastUpdateTime) && (canWrite || ban || chat.ChatType != info.chatType) {
+	updateChatType := info.chatType != "" && chat.ChatType != info.chatType
+	if !info.timestamp.Before(chat.LastUpdateTime) && (canWrite || ban || updateChatType) {
 		chat.ChatType = info.chatType
 		chat.LastUpdateTime = info.timestamp
 		chat.CanWrite = !ban && (chat.CanWrite || canWrite)
