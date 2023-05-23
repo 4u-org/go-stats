@@ -421,6 +421,24 @@ func (u *UpdateDispatcher) updateChatMember(
 	joinUrl string,
 	actorId int64,
 ) error {
+	// This function can be called concurrently from different bots, so we need to handle dublicate key error
+	err := u.updateChatMemberLocked(ctx, chatID, memberID, info, join, leave, joinUrl, actorId)
+	if err == gorm.ErrDuplicatedKey {
+		return u.updateChatMemberLocked(ctx, chatID, memberID, info, join, leave, joinUrl, actorId)
+	}
+	return err
+}
+
+func (u *UpdateDispatcher) updateChatMemberLocked(
+	ctx context.Context,
+	chatID int64,
+	memberID int64,
+	info *ExtractedInfo,
+	join bool,
+	leave bool,
+	joinUrl string,
+	actorId int64,
+) error {
 	u.keymutex.LockID(uint(chatID))
 	defer u.keymutex.UnlockID(uint(chatID))
 
