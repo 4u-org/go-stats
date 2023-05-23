@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go-stats/database"
+	"go-stats/keymutex"
 	"strings"
 	"time"
 
@@ -23,6 +24,7 @@ type UpdateDispatcher struct {
 	api      *tg.Client
 	clickCh  chan *database.Event
 	logger   *zap.Logger
+	keymutex *keymutex.KeyMutex
 }
 
 func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan *database.Event, logger *zap.Logger) UpdateDispatcher {
@@ -34,6 +36,7 @@ func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan 
 		api:      nil,
 		clickCh:  clickCh,
 		logger:   logger,
+		keymutex: keymutex.New(47),
 	}
 }
 
@@ -95,6 +98,16 @@ func (u UpdateDispatcher) Handle(ctx context.Context, updates tg.UpdatesClass) e
 }
 
 func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.UpdateClass) error {
+	go func() {
+		err := u.dispatchSync(ctx, e, update)
+		if err != nil {
+			u.logger.Error("Error dispatching update", zap.Error(err))
+		}
+	}()
+	return nil
+}
+
+func (u *UpdateDispatcher) dispatchSync(ctx context.Context, e Entities, update tg.UpdateClass) error {
 	if update == nil {
 		return nil
 	}
@@ -154,41 +167,10 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 	}
 	event.ChatType = info.chatType
 
-	if event.UserID != 0 {
-		// TODO: Use separate function for this
-		if user, okUser := e.Users[event.UserID]; okUser {
-			event.Language, _ = user.GetLangCode()
-		}
-
-		userDb := database.User{BotID: event.BotID, UserID: event.UserID}
-		if tx := u.db.Where(&userDb).First(&userDb); tx.Error != nil {
-			if tx.Error != gorm.ErrRecordNotFound {
-				return tx.Error
-			}
-			userDb.UserID = event.UserID
-			userDb.BotID = event.BotID
-			userDb.FirstActionTime = info.timestamp
-			userDb.LastActionTime = info.timestamp
-			userDb.RefererID = ""
-			userDb.SessionID = int16(1)
-			userDb.SessionRefererID = ""
-			u.db.Create(&userDb)
-		} else if info.updateSession {
-			if userDb.LastActionTime.Before(info.timestamp.Add(-time.Minute * 5)) {
-				userDb.SessionID++
-				userDb.SessionRefererID = ""
-			}
-			userDb.LastActionTime = info.timestamp
-			tx.Save(&userDb)
-		}
-
-		event.SessionID = userDb.SessionID
-		event.Referer = userDb.RefererID
-		event.SessionReferer = userDb.SessionRefererID
-		event.UserCreatedAt = &userDb.FirstActionTime
-	}
-
 	if !info.ignoreUpdate {
+		if event.UserID != 0 {
+			u.addUserInfoToEvent(ctx, &event, info, e)
+		}
 		u.clickCh <- &event
 	}
 
@@ -200,8 +182,46 @@ func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.U
 	if err := u.highLevelDispatch(ctx, e, update, info); err != nil {
 		u.logger.Error("highLevelDispatch", zap.Error(err))
 	}
+
 	// time.Sleep(time.Second * 20)
 	// fmt.Println(update)
+	return nil
+}
+
+func (u *UpdateDispatcher) addUserInfoToEvent(ctx context.Context, event *database.Event, info *ExtractedInfo, e Entities) error {
+	u.keymutex.LockID(uint(event.UserID))
+	defer u.keymutex.UnlockID(uint(event.UserID))
+
+	if user, okUser := e.Users[event.UserID]; okUser {
+		event.Language, _ = user.GetLangCode()
+	}
+
+	userDb := database.User{BotID: event.BotID, UserID: event.UserID}
+	if tx := u.db.Where(&userDb).First(&userDb); tx.Error != nil {
+		if tx.Error != gorm.ErrRecordNotFound {
+			return tx.Error
+		}
+		userDb.UserID = event.UserID
+		userDb.BotID = event.BotID
+		userDb.FirstActionTime = info.timestamp
+		userDb.LastActionTime = info.timestamp
+		userDb.RefererID = ""
+		userDb.SessionID = int16(1)
+		userDb.SessionRefererID = ""
+		u.db.Create(&userDb)
+	} else if info.updateSession {
+		if userDb.LastActionTime.Before(info.timestamp.Add(-time.Minute * 5)) {
+			userDb.SessionID++
+			userDb.SessionRefererID = ""
+		}
+		userDb.LastActionTime = info.timestamp
+		tx.Save(&userDb)
+	}
+
+	event.SessionID = userDb.SessionID
+	event.Referer = userDb.RefererID
+	event.SessionReferer = userDb.SessionRefererID
+	event.UserCreatedAt = &userDb.FirstActionTime
 	return nil
 }
 
@@ -322,6 +342,9 @@ func max(a, b time.Time) time.Time {
 }
 
 func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, canWrite bool, ban bool) error {
+	u.keymutex.LockID(uint(info.chatID))
+	defer u.keymutex.UnlockID(uint(info.chatID))
+
 	chat := database.Chat{BotID: u.botId, ChatID: info.chatID}
 	tx := u.db.Where(&chat).First(&chat)
 	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
@@ -349,6 +372,10 @@ func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, 
 }
 
 func (u *UpdateDispatcher) updateChatID(ctx context.Context, oldID int64, newID int64) error {
+	if oldID == newID {
+		return nil
+	}
+
 	err := u.db.Transaction(func(tx *gorm.DB) error {
 		chat := database.Chat{BotID: u.botId, ChatID: oldID}
 		err := tx.Where(&chat).First(&chat).Error
@@ -392,6 +419,9 @@ func (u *UpdateDispatcher) updateChatMember(
 	joinUrl string,
 	actorId int64,
 ) error {
+	u.keymutex.LockID(uint(chatID))
+	defer u.keymutex.UnlockID(uint(chatID))
+
 	chatMember := database.ChatMember{ChatID: chatID, UserID: memberID}
 	tx := u.db.Where(&chatMember).First(&chatMember)
 	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
