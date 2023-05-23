@@ -134,12 +134,12 @@ func RunBot(
 
 	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
 	session := NewBoltSessionStorage(stateDB, botID)
-	storage := NewBoltState(stateDB)
+	// storage := NewBoltState(stateDB)
 	accessHasher := NewBoltAccessHasher(stateDB)
 	handler := NewUpdateDispatcher(botID, bot.App, db, clickCH, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
 
 	gaps := updates.New(updates.Config{
-		Storage:      storage,
+		// Storage:      storage,
 		AccessHasher: accessHasher,
 		Handler:      handler, //handler,
 		Logger:       namedLog,
