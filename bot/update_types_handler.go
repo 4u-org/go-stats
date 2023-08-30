@@ -43,15 +43,21 @@ func getPeerID(peer tg.PeerClass) int64 {
 }
 
 func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInfo {
+	info.data = make([]string, 0)
+	info.dataLowCardinality = make([]string, 4)
+	info.dataInt = make([]int64, 2)
+	info.dataFlags = make([]bool, 2)
+
 	switch m := message.(type) {
 	case *tg.MessageEmpty:
-		info.dataInt = append(info.dataInt, int64(m.GetID()))
+		info.dataInt[0] = int64(m.GetID())
 		peerID, ok := m.GetPeerID()
-		info.dataLowCardinality = append(info.dataLowCardinality, "MessageEmpty")
-		info.dataLowCardinality = append(info.dataLowCardinality, "Empty")
+		info.dataLowCardinality[0] = "MessageEmpty"
+		info.dataLowCardinality[1] = "Empty"
 		if ok {
 			info.chatID = getPeerID(peerID)
-			info.dataLowCardinality = append(info.dataLowCardinality, peerID.TypeName())
+			info.dataLowCardinality[2] = peerID.TypeName()
+			info.dataLowCardinality[3] = peerID.TypeName()
 		}
 		if !ok || peerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
@@ -61,16 +67,16 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 		info.fromBot = m.GetOut()
 		info.updateSession = !info.fromBot
 
-		info.dataInt = append(info.dataInt, int64(m.GetID()))
+		info.dataInt[0] = int64(m.GetID())
 		// info.dataInt = append(info.dataInt, viaBot)
 
-		info.dataFlags = append(info.dataFlags, false)
-		info.dataFlags = append(info.dataFlags, m.GetMentioned())
+		info.dataFlags[0] = false
+		info.dataFlags[1] = m.GetMentioned()
 
 		info.timestamp = time.Unix(int64(m.GetDate()), 0)
 
-		info.dataLowCardinality = append(info.dataLowCardinality, "MessageService")
-		info.dataLowCardinality = append(info.dataLowCardinality, m.Action.TypeName())
+		info.dataLowCardinality[0] = "MessageService"
+		info.dataLowCardinality[1] = m.Action.TypeName()
 
 		peer := m.GetPeerID()
 		from, okFrom := m.GetFromID()
@@ -78,12 +84,13 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 		if okFrom {
 			info.chatID = getPeerID(peer)
 			info.userID = getPeerID(from)
-			info.dataLowCardinality = append(info.dataLowCardinality, peer.TypeName())
-			info.dataLowCardinality = append(info.dataLowCardinality, from.TypeName())
+			info.dataLowCardinality[2] = peer.TypeName()
+			info.dataLowCardinality[3] = from.TypeName()
 		} else {
 			info.chatID = getPeerID(peer)
 			info.userID = getPeerID(peer)
-			info.dataLowCardinality = append(info.dataLowCardinality, peer.TypeName())
+			info.dataLowCardinality[2] = peer.TypeName()
+			info.dataLowCardinality[3] = peer.TypeName()
 		}
 
 		return info
@@ -91,14 +98,14 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 		info.fromBot = m.GetOut()
 		info.updateSession = !info.fromBot
 
-		info.dataInt = append(info.dataInt, int64(m.GetID()))
+		info.dataInt[0] = int64(m.GetID())
 		viaBot, okViaBot := m.GetViaBotID()
 		if okViaBot {
-			info.dataInt = append(info.dataInt, viaBot)
+			info.dataInt[1] = viaBot
 		}
 
-		info.dataFlags = append(info.dataFlags, m.GetEditHide())
-		info.dataFlags = append(info.dataFlags, m.GetMentioned())
+		info.dataFlags[0] = m.GetEditHide()
+		info.dataFlags[1] = m.GetMentioned()
 
 		editDate, okEditDate := m.GetEditDate()
 		if okEditDate {
@@ -107,12 +114,12 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.timestamp = time.Unix(int64(m.GetDate()), 0)
 		}
 
-		info.dataLowCardinality = append(info.dataLowCardinality, "Message")
+		info.dataLowCardinality[0] = "Message"
 		media, okMedia := m.GetMedia()
 		if okMedia {
-			info.dataLowCardinality = append(info.dataLowCardinality, media.TypeName())
+			info.dataLowCardinality[1] = media.TypeName()
 		} else {
-			info.dataLowCardinality = append(info.dataLowCardinality, "Text")
+			info.dataLowCardinality[1] = "Text"
 		}
 
 		peer := m.GetPeerID()
@@ -121,15 +128,16 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 		if okFrom {
 			info.chatID = getPeerID(peer)
 			info.userID = getPeerID(from)
-			info.dataLowCardinality = append(info.dataLowCardinality, peer.TypeName())
-			info.dataLowCardinality = append(info.dataLowCardinality, from.TypeName())
+			info.dataLowCardinality[2] = peer.TypeName()
+			info.dataLowCardinality[3] = from.TypeName()
 		} else {
 			info.chatID = getPeerID(peer)
 			info.userID = getPeerID(peer)
-			info.dataLowCardinality = append(info.dataLowCardinality, peer.TypeName())
+			info.dataLowCardinality[2] = peer.TypeName()
+			info.dataLowCardinality[3] = peer.TypeName()
 		}
 
-		if !m.Post && !okViaBot && m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
+		if !m.Post && !okViaBot && !m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
 		}
 		return info
