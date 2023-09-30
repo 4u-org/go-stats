@@ -140,6 +140,20 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 		if !m.Post && !okViaBot && !m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
 		}
+
+		if peer.TypeID() == tg.PeerUserTypeID && strings.HasPrefix(m.Message, "/start") {
+			info.referer = strings.Trim(strings.Replace(m.Message, "/start", "", 1), " ")
+		}
+		if peer.TypeID() == tg.PeerChatTypeID || peer.TypeID() == tg.PeerChannelTypeID {
+			if strings.HasPrefix(m.Message, "/start@") {
+				if m.Mentioned {
+					info.referer = strings.SplitN(m.Message, " ", 1)[1]
+				}
+			} else if strings.HasPrefix(m.Message, "/start") {
+				info.referer = strings.SplitN(m.Message, " ", 1)[1]
+			}
+		}
+
 		return info
 	default:
 		panic("Invalid message")

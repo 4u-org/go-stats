@@ -205,14 +205,14 @@ func (u *UpdateDispatcher) addUserInfoToEvent(ctx context.Context, event *databa
 		userDb.BotID = event.BotID
 		userDb.FirstActionTime = info.timestamp
 		userDb.LastActionTime = info.timestamp
-		userDb.RefererID = ""
+		userDb.RefererID = info.referer
 		userDb.SessionID = int16(1)
-		userDb.SessionRefererID = ""
+		userDb.SessionRefererID = info.referer
 		u.db.Create(&userDb)
 	} else if info.updateSession {
 		if userDb.LastActionTime.Before(info.timestamp.Add(-time.Minute * 5)) {
 			userDb.SessionID++
-			userDb.SessionRefererID = ""
+			userDb.SessionRefererID = info.referer
 		}
 		userDb.LastActionTime = info.timestamp
 		tx.Save(&userDb)
