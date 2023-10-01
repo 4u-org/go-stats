@@ -145,12 +145,19 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.referer = strings.Trim(strings.Replace(m.Message, "/start", "", 1), " ")
 		}
 		if peer.TypeID() == tg.PeerChatTypeID || peer.TypeID() == tg.PeerChannelTypeID {
+			setReferer := false
 			if strings.HasPrefix(m.Message, "/start@") {
-				if m.Mentioned {
-					info.referer = strings.SplitN(m.Message, " ", 1)[1]
-				}
+				// TODO: check username
+				setReferer = true
 			} else if strings.HasPrefix(m.Message, "/start") {
-				info.referer = strings.SplitN(m.Message, " ", 1)[1]
+				setReferer = true
+			}
+
+			if setReferer {
+				split := strings.SplitN(m.Message, " ", 1)
+				if len(split) > 1 {
+					info.referer = split[1]
+				}
 			}
 		}
 
