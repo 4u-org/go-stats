@@ -55,6 +55,21 @@ func UpdateDb(
 	return nil
 }
 
+func GetFromDb(
+	db *gorm.DB,
+	botID int64,
+) (*database.Bot, error) {
+	bot := database.Bot{ID: botID}
+	tx := db.Where(&bot).First(&bot)
+	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
+		return nil, errors.Wrap(tx.Error, "Failed to get info")
+	}
+	if tx.Error == gorm.ErrRecordNotFound {
+		return nil, errors.Wrap(tx.Error, "Could not find info about bot in db")
+	}
+	return &bot, nil
+}
+
 func LoginBot(
 	ctx context.Context,
 	boltDb *bolt.DB,
