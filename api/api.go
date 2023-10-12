@@ -58,6 +58,7 @@ func Start(
 
 	r.GET("/ping", api.ping)
 	r.GET("/add_bot", api.addBot)
+	r.GET("/get_bot", api.getBot)
 
 	host := os.Getenv("API_HOST")
 	if host == "" {

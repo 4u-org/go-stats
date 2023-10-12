@@ -18,6 +18,20 @@ func (a *Api) ping(c *gin.Context) {
 	})
 }
 
+func (a *Api) getBot(q *GetBotQuery) (*BotResponse, gnext.Status) {
+	// Extract bot id from token
+	bot, err := bot.GetFromDb(a.db, q.BotID)
+
+	if err != nil {
+		return &BotResponse{
+			Ok:      false,
+			Message: fmt.Sprintf("Could not get info: %s", err),
+		}, http.StatusBadRequest
+	}
+
+	return &BotResponse{Ok: true, App: *bot.App, LoggedIn: bot.LoggedIn}, http.StatusOK
+}
+
 func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 	// Extract bot id from token
 	botId := strings.Split(q.Token, ":")[0]
