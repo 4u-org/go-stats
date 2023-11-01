@@ -92,7 +92,7 @@ func (u UpdateDispatcher) Handle(ctx context.Context, updates tg.UpdatesClass) e
 
 	var err error
 	for _, update := range upds {
-		multierr.AppendInto(&err, u.dispatch(ctx, e, update))
+		multierr.AppendInto(&err, u.dispatchSync(ctx, e, update))
 	}
 	return err
 }
@@ -189,8 +189,8 @@ func (u *UpdateDispatcher) dispatchSync(ctx context.Context, e Entities, update 
 }
 
 func (u *UpdateDispatcher) addUserInfoToEvent(ctx context.Context, event *database.Event, info *ExtractedInfo, e Entities) error {
-	u.keymutex.LockID(uint(event.UserID))
-	defer u.keymutex.UnlockID(uint(event.UserID))
+	// u.keymutex.LockID(uint(event.UserID))
+	// defer u.keymutex.UnlockID(uint(event.UserID))
 
 	if user, okUser := e.Users[event.UserID]; okUser {
 		event.Language, _ = user.GetLangCode()
@@ -342,8 +342,8 @@ func max(a, b time.Time) time.Time {
 }
 
 func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, canWrite bool, ban bool) error {
-	u.keymutex.LockID(uint(info.chatID))
-	defer u.keymutex.UnlockID(uint(info.chatID))
+	// u.keymutex.LockID(uint(info.chatID))
+	// defer u.keymutex.UnlockID(uint(info.chatID))
 
 	chat := database.Chat{BotID: u.botId, ChatID: info.chatID}
 	tx := u.db.Where(&chat).First(&chat)
@@ -441,8 +441,8 @@ func (u *UpdateDispatcher) updateChatMemberLocked(
 	joinUrl string,
 	actorId int64,
 ) error {
-	u.keymutex.LockID(uint(chatID))
-	defer u.keymutex.UnlockID(uint(chatID))
+	// u.keymutex.LockID(uint(chatID))
+	// defer u.keymutex.UnlockID(uint(chatID))
 
 	chatMember := database.ChatMember{ChatID: chatID, UserID: memberID}
 	tx := u.db.Where(&chatMember).First(&chatMember)
