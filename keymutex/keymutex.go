@@ -1,12 +1,12 @@
 package keymutex
 
 import (
-	"sync"
+	"github.com/sasha-s/go-deadlock"
 )
 
 // KeyMutex a hash key mutex
 type KeyMutex struct {
-	locks  []sync.Mutex
+	locks  []deadlock.Mutex
 	count  uint
 	handle HashHandle
 }
@@ -17,7 +17,7 @@ func New(count uint) *KeyMutex {
 	var this KeyMutex
 	this.count = count
 	this.handle = ELFHash
-	this.locks = make([]sync.Mutex, count)
+	this.locks = make([]deadlock.Mutex, count)
 	return &this
 }
 
@@ -26,7 +26,7 @@ func NewByHash(count uint, handle HashHandle) *KeyMutex {
 	var this KeyMutex
 	this.count = count
 	this.handle = handle
-	this.locks = make([]sync.Mutex, count)
+	this.locks = make([]deadlock.Mutex, count)
 	return &this
 }
 

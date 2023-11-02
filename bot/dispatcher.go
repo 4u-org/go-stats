@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gotd/td/tg"
+	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -17,26 +18,28 @@ import (
 type handler = func(context.Context, Entities, tg.UpdateClass) error
 
 type UpdateDispatcher struct {
-	handlers map[uint32]handler
-	botId    int64
-	botApp   *string
-	db       *gorm.DB
-	api      *tg.Client
-	clickCh  chan *database.Event
-	logger   *zap.Logger
-	keymutex *keymutex.KeyMutex
+	handlers          map[uint32]handler
+	botId             int64
+	botApp            *string
+	db                *gorm.DB
+	api               *tg.Client
+	clickCh           chan *database.Event
+	logger            *zap.Logger
+	keymutex          *keymutex.KeyMutex
+	updateChatIDMutex *deadlock.RWMutex
 }
 
 func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan *database.Event, logger *zap.Logger) UpdateDispatcher {
 	return UpdateDispatcher{
-		handlers: map[uint32]handler{},
-		botId:    botId,
-		botApp:   botApp,
-		db:       db,
-		api:      nil,
-		clickCh:  clickCh,
-		logger:   logger,
-		keymutex: keymutex.New(47),
+		handlers:          map[uint32]handler{},
+		botId:             botId,
+		botApp:            botApp,
+		db:                db,
+		api:               nil,
+		clickCh:           clickCh,
+		logger:            logger,
+		keymutex:          keymutex.New(47),
+		updateChatIDMutex: &deadlock.RWMutex{},
 	}
 }
 
@@ -92,7 +95,7 @@ func (u UpdateDispatcher) Handle(ctx context.Context, updates tg.UpdatesClass) e
 
 	var err error
 	for _, update := range upds {
-		multierr.AppendInto(&err, u.dispatchSync(ctx, e, update))
+		multierr.AppendInto(&err, u.dispatch(ctx, e, update))
 	}
 	return err
 }
@@ -189,8 +192,8 @@ func (u *UpdateDispatcher) dispatchSync(ctx context.Context, e Entities, update 
 }
 
 func (u *UpdateDispatcher) addUserInfoToEvent(ctx context.Context, event *database.Event, info *ExtractedInfo, e Entities) error {
-	// u.keymutex.LockID(uint(event.UserID))
-	// defer u.keymutex.UnlockID(uint(event.UserID))
+	u.keymutex.LockID(uint(event.UserID))
+	defer u.keymutex.UnlockID(uint(event.UserID))
 
 	if user, okUser := e.Users[event.UserID]; okUser {
 		event.Language, _ = user.GetLangCode()
@@ -342,8 +345,11 @@ func max(a, b time.Time) time.Time {
 }
 
 func (u *UpdateDispatcher) updateChat(ctx context.Context, info *ExtractedInfo, canWrite bool, ban bool) error {
-	// u.keymutex.LockID(uint(info.chatID))
-	// defer u.keymutex.UnlockID(uint(info.chatID))
+	u.updateChatIDMutex.RLock()
+	defer u.updateChatIDMutex.RUnlock()
+
+	u.keymutex.LockID(uint(info.chatID))
+	defer u.keymutex.UnlockID(uint(info.chatID))
 
 	chat := database.Chat{BotID: u.botId, ChatID: info.chatID}
 	tx := u.db.Where(&chat).First(&chat)
@@ -379,6 +385,9 @@ func (u *UpdateDispatcher) updateChatID(ctx context.Context, oldID int64, newID 
 	if oldID == newID {
 		return nil
 	}
+
+	u.updateChatIDMutex.Lock()
+	defer u.updateChatIDMutex.Unlock()
 
 	err := u.db.Transaction(func(tx *gorm.DB) error {
 		chat := database.Chat{BotID: u.botId, ChatID: oldID}
@@ -441,8 +450,11 @@ func (u *UpdateDispatcher) updateChatMemberLocked(
 	joinUrl string,
 	actorId int64,
 ) error {
-	// u.keymutex.LockID(uint(chatID))
-	// defer u.keymutex.UnlockID(uint(chatID))
+	u.updateChatIDMutex.RLock()
+	defer u.updateChatIDMutex.RUnlock()
+
+	u.keymutex.LockID(uint(chatID))
+	defer u.keymutex.UnlockID(uint(chatID))
 
 	chatMember := database.ChatMember{ChatID: chatID, UserID: memberID}
 	tx := u.db.Where(&chatMember).First(&chatMember)
