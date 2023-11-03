@@ -16,6 +16,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/go-faster/errors"
 	"github.com/joho/godotenv"
+	"github.com/sasha-s/go-deadlock"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -77,6 +78,14 @@ func run(ctx context.Context) error {
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)
 	defer func() { _ = log.Sync() }()
+
+	deadlock.Opts.Disable = false
+	deadlock.Opts.DisableLockOrderDetection = false
+	deadlock.Opts.LogBuf = os.Stdout
+	deadlock.Opts.OnPotentialDeadlock = func() {
+		log.Error("Potential deadlock detected")
+	}
+	deadlock.Opts.PrintAllCurrentGoroutines = true
 
 	// Open the postgres database
 	db, err := gorm.Open(postgres.Open(os.Getenv("POSTGRES_DSN")), &gorm.Config{
