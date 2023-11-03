@@ -1,4 +1,4 @@
-package main 
+package main
 
 import (
 	"context"
@@ -42,17 +42,13 @@ func writeEvents(ctx context.Context, conn driver.Conn, clickCh chan *database.E
 			}
 		case <-tick:
 			// Send the batch and prepare a new one
-			err := batch.Send()
+			err := batch.Flush()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
 			}
-			batch, err = conn.PrepareBatch(context.TODO(), query)
-			if err != nil {
-				log.Error("Error preparing batch", zap.Error(err))
-			}
 		case <-close:
 			// Send the batch, close the connection and return
-			err := batch.Send()
+			err := batch.Flush()
 			if err != nil {
 				log.Error("Error writing events", zap.Error(err))
 			}
