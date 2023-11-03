@@ -12,7 +12,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/stretchr/testify v1.8.4
-	gorm.io/driver/postgres v1.5.4
+	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.5
 )
 
