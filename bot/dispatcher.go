@@ -102,10 +102,24 @@ func (u UpdateDispatcher) Handle(ctx context.Context, updates tg.UpdatesClass) e
 
 func (u *UpdateDispatcher) dispatch(ctx context.Context, e Entities, update tg.UpdateClass) error {
 	go func() {
+		ch := make(chan struct{})
+		go func() {
+			t := time.NewTimer(time.Second * 30)
+			defer t.Stop() // This runs after the losure finishes, but it's OK.
+			select {
+			case <-t.C:
+				u.logger.Error("UpdateDispatcher.dispatch timeout", zap.String("update", fmt.Sprintf("%T", update)))
+				return
+			case <-ch:
+				return
+			}
+
+		}()
 		err := u.dispatchSync(ctx, e, update)
 		if err != nil {
 			u.logger.Error("Error dispatching update", zap.Error(err))
 		}
+		close(ch)
 	}()
 	return nil
 }
