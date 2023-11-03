@@ -137,7 +137,7 @@ func dataFromMessage(message tg.MessageClass, info *ExtractedInfo) *ExtractedInf
 			info.dataLowCardinality[3] = peer.TypeName()
 		}
 
-		if !m.Post && !okViaBot && !m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
+		if !m.Out && !m.Post && !okViaBot && !m.Mentioned && m.PeerID.TypeID() == tg.PeerChannelTypeID {
 			info.ignoreUpdate = true
 		}
 
