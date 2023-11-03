@@ -386,6 +386,13 @@ func (u *UpdateDispatcher) updateChatID(ctx context.Context, oldID int64, newID 
 		return nil
 	}
 
+	// This lock blocks all operations with chats
+	// Handling chat migration is pain
+	// But it happens very rarely so it's ok to block all operations
+	// TODO: Currently this function doesn't update chat members
+	//       We should update them too, but be careful, chat members
+	//       table doesn't have a bot_id column, so this function
+	//       can be concurrently called from different bots
 	u.updateChatIDMutex.Lock()
 	defer u.updateChatIDMutex.Unlock()
 
@@ -450,6 +457,9 @@ func (u *UpdateDispatcher) updateChatMemberLocked(
 	joinUrl string,
 	actorId int64,
 ) error {
+	// TODO: This function can be called concurrently from different bots,
+	//       so we need to check all edge cases
+
 	u.updateChatIDMutex.RLock()
 	defer u.updateChatIDMutex.RUnlock()
 
