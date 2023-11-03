@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gotd/contrib v0.19.0
-	github.com/gotd/td v0.89.0
+	github.com/gotd/td v0.88.0
 	github.com/meteran/gnext v0.10.2
 	github.com/pkg/errors v0.9.1
 	github.com/sasha-s/go-deadlock v0.3.1
