@@ -137,7 +137,9 @@ loop:
 		switch checkGap(state, update.State, update.Count) {
 		case gapApply:
 			accepted = append(accepted, update)
-			state = update.State
+			if update.State != 0 {
+				state = update.State
+			}
 			cursor = i + 1
 			continue
 
