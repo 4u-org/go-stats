@@ -156,6 +156,7 @@ loop:
 	trim := end - cursor
 	copy(s.pending, s.pending[cursor:])
 	for i := trim; i < end; i++ {
+		s.log.Warn("Trimming", zap.Any("update", s.pending[i]))
 		s.pending[i] = update{}
 	}
 	s.pending = s.pending[:trim]
