@@ -63,7 +63,7 @@ func (m *Manager) Handle(ctx context.Context, u tg.UpdatesClass) error {
 	state := m.state
 	m.mux.Unlock()
 
-	if state == nil {
+	if true || state == nil {
 		m.lg.Debug("Handle (no internalState)")
 		return m.cfg.Handler.Handle(ctx, u)
 	}
