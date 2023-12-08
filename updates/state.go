@@ -164,16 +164,16 @@ func (s *internalState) Run(ctx context.Context) error {
 			}
 		case <-s.pts.gapTimeout.C:
 			s.log.Debug("Pts gap timeout")
-			s.getDifferenceLogger(ctx)
+			// s.getDifferenceLogger(ctx)
 		case <-s.qts.gapTimeout.C:
 			s.log.Debug("Qts gap timeout")
-			s.getDifferenceLogger(ctx)
+			// s.getDifferenceLogger(ctx)
 		case <-s.seq.gapTimeout.C:
 			s.log.Debug("Seq gap timeout")
-			s.getDifferenceLogger(ctx)
+			// s.getDifferenceLogger(ctx)
 		case <-s.idleTimeout.C:
 			s.log.Debug("Idle timeout")
-			s.getDifferenceLogger(ctx)
+			// s.getDifferenceLogger(ctx)
 		}
 	}
 }
