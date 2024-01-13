@@ -108,5 +108,5 @@ type Event struct {
 }
 
 func (e *Event) TableName() string {
-	return "bots.eventsgotest"
+	return "bots.eventsgo"
 }
