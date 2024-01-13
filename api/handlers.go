@@ -71,3 +71,7 @@ func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 
 	return &Response{Ok: true}, http.StatusOK
 }
+
+func (a *Api) insertUsers(q *InsertUsersQuery) (*Response, gnext.Status) {
+	return &Response{Ok: true}, http.StatusOK
+}

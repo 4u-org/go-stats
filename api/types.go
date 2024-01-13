@@ -27,3 +27,10 @@ type GetBotQuery struct {
 	BotID  int64  `form:"bot_id"`
 	Source string `form:"source"`
 }
+
+type InsertUsersQuery struct {
+	gnext.Body
+	BotID      int64 `json:"bot_id"`
+	ForceCheck bool  `json:"force_check"`
+	Users      []int `json:"user_ids"`
+}
