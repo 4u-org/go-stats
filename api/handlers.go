@@ -20,7 +20,7 @@ func (a *Api) ping(c *gin.Context) {
 
 func (a *Api) getBot(q *GetBotQuery) (*BotResponse, gnext.Status) {
 	// Extract bot id from token
-	bot, err := bot.GetFromDb(a.db, q.BotID)
+	bot, err := bot.GetFromDb(a.db, &q.Source, q.BotID)
 
 	if err != nil {
 		return &BotResponse{
@@ -58,7 +58,7 @@ func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 	tokenHash := bot.HashToken(q.Token)
 
 	// Add bot to database
-	if err := bot.UpdateDb(a.db, botIdInt, app, tokenHash, true); err != nil {
+	if err := bot.UpdateDb(a.db, &q.Source, botIdInt, app, tokenHash, true); err != nil {
 		a.log.Info("Error adding bot to database", zap.Error(err))
 		return &Response{
 			Ok:      false,

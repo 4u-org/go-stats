@@ -16,6 +16,7 @@ type BotResponse struct {
 
 type Bot struct {
 	gnext.Query
+	Source    string `form:"source"`
 	App       string `form:"app"`
 	Token     string `form:"token"`
 	ForceAuth bool   `form:"force_auth"`
@@ -23,5 +24,6 @@ type Bot struct {
 
 type GetBotQuery struct {
 	gnext.Query
-	BotID int64 `form:"bot_id"`
+	BotID  int64  `form:"bot_id"`
+	Source string `form:"source"`
 }

@@ -27,12 +27,13 @@ func HashToken(token string) *[]byte {
 
 func UpdateDb(
 	db *gorm.DB,
+	source *string,
 	botId int64,
 	app *string,
 	tokenHash *[]byte,
 	loggedIn bool,
 ) error {
-	bot := database.Bot{ID: botId}
+	bot := database.Bot{ID: botId, Source: source}
 	tx := db.Where(&bot).First(&bot)
 	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
 		return errors.Wrap(tx.Error, "Failed to add bot to db")
@@ -57,9 +58,10 @@ func UpdateDb(
 
 func GetFromDb(
 	db *gorm.DB,
+	source *string,
 	botID int64,
 ) (*database.Bot, error) {
-	bot := database.Bot{ID: botID}
+	bot := database.Bot{ID: botID, Source: source}
 	tx := db.Where(&bot).First(&bot)
 	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
 		return nil, errors.Wrap(tx.Error, "Failed to get info")

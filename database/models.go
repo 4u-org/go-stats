@@ -4,6 +4,7 @@ import "time"
 
 type Bot struct {
 	ID        int64   `gorm:"primaryKey"`
+	Source    *string `gorm:"size:64;default:''"`
 	TokenHash *[]byte `gorm:"type:bytea"`
 	App       *string `gorm:"size:64"`
 	LoggedIn  bool    `gorm:"default:false"`
@@ -107,5 +108,5 @@ type Event struct {
 }
 
 func (e *Event) TableName() string {
-	return "bots.eventsgo"
+	return "bots.eventsgotest"
 }
