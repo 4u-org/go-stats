@@ -33,7 +33,7 @@ func UpdateDb(
 	tokenHash *[]byte,
 	loggedIn bool,
 ) error {
-	bot := database.Bot{ID: botId, Source: source}
+	bot := database.Bot{ID: botId}
 	tx := db.Where(&bot).First(&bot)
 	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
 		return errors.Wrap(tx.Error, "Failed to add bot to db")
@@ -42,6 +42,7 @@ func UpdateDb(
 		bot.App = app
 		bot.TokenHash = tokenHash
 		bot.LoggedIn = loggedIn
+		bot.Source = source
 		if err := db.Create(&bot).Error; err != nil {
 			return errors.Wrap(err, "Failed to add bot to db")
 		}
@@ -50,6 +51,7 @@ func UpdateDb(
 	bot.App = app
 	bot.TokenHash = tokenHash
 	bot.LoggedIn = loggedIn
+	bot.Source = source
 	if err := tx.Save(&bot).Error; err != nil {
 		return errors.Wrap(err, "Failed to update bot in db")
 	}
