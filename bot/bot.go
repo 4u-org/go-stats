@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go-stats/updates"
-	updhook "go-stats/updates/hook"
 
 	"github.com/gotd/td/telegram"
 	"github.com/pkg/errors"
@@ -130,74 +129,65 @@ func LoginBot(
 	})
 }
 
-func RunBot(
+type TgBot struct {
+	ctx      context.Context
+	cancel   context.CancelFunc
+	client   *telegram.Client
+	gaps     *updates.Manager
+	botID    int64
+	db       *gorm.DB
+	namedLog *zap.Logger
+}
+
+func NewTgBot(
 	ctx context.Context,
-	stateDB *bolt.DB,
-	apiID int,
-	apiHash string,
+	client *telegram.Client,
+	gaps *updates.Manager,
 	botID int64,
 	db *gorm.DB,
-	clickCH chan *database.Event,
-	log *zap.Logger,
-	forget bool,
-) error {
-	bot := database.Bot{ID: botID}
-	if errBot := db.First(&bot).Error; errBot != nil {
-		return errors.Wrap(errBot, "Bot not found")
+	namedLog *zap.Logger,
+) *TgBot {
+	return &TgBot{
+		ctx:      ctx,
+		client:   client,
+		gaps:     gaps,
+		botID:    botID,
+		db:       db,
+		namedLog: namedLog,
 	}
+}
 
-	namedLog := log.Named(strconv.FormatInt(botID, 10))
-	if botID != 1264915325 {
-		namedLog = namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel))
-	}
+func (b *TgBot) Run(forget bool) error {
+	ctx, cancel := context.WithCancel(b.ctx)
+	b.cancel = cancel
 
-	// session := session.FileStorage{Path: "sessions/session_" + strconv.FormatInt(botId, 10)}
-	session := NewBoltSessionStorage(stateDB, botID)
-	// storage := NewBoltState(stateDB)
-	accessHasher := NewBoltAccessHasher(stateDB)
-	handler := NewUpdateDispatcher(botID, bot.App, db, clickCH, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
-
-	gaps := updates.New(updates.Config{
-		// Storage:      storage,
-		AccessHasher: accessHasher,
-		Handler:      handler, //handler,
-		Logger:       namedLog,
-	})
-
-	client := telegram.NewClient(apiID, apiHash, telegram.Options{
-		Logger:         namedLog,
-		SessionStorage: session,
-		UpdateHandler:  gaps,
-		Middlewares: []telegram.Middleware{
-			updhook.UpdateHook(gaps.Handle),
-		},
-	})
-
-	handler.addApi(client.API())
-
-	return client.Run(ctx, func(ctx context.Context) error {
+	return b.client.Run(ctx, func(ctx context.Context) error {
 		// Check auth status.
-		status, err := client.Auth().Status(ctx)
+		status, err := b.client.Auth().Status(ctx)
 		if err != nil {
 			return errors.Wrap(err, "Failed to get auth status")
 		}
 
 		if !status.Authorized {
-			if err := db.Where("id = ?", botID).Updates(database.Bot{LoggedIn: false}).Error; err != nil {
-				namedLog.Error("Failed to update bot in db", zap.Error(err))
+			if err := b.db.Where("id = ?", b.botID).Updates(database.Bot{LoggedIn: false}).Error; err != nil {
+				b.namedLog.Error("Failed to update bot in db", zap.Error(err))
 			}
 			return errors.New("Bot not authorized. Use LoginBot method")
 		}
 
-		namedLog.Info("Bot login restored", zap.String("name", status.User.Username))
+		b.namedLog.Info("Bot login restored", zap.String("name", status.User.Username))
 
 		// Notify update manager about authentication.
-		return gaps.Run(ctx, client.API(), status.User.ID, updates.AuthOptions{
+		return b.gaps.Run(ctx, b.client.API(), status.User.ID, updates.AuthOptions{
 			IsBot:  status.User.Bot,
 			Forget: forget,
 			OnStart: func(ctx context.Context) {
-				namedLog.Info("Gaps started")
+				b.namedLog.Info("Gaps started")
 			},
 		})
 	})
+}
+
+func (b *TgBot) Stop() {
+	b.cancel()
 }

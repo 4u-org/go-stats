@@ -162,9 +162,22 @@ func run(ctx context.Context) error {
 	}
 
 	// Run each bot in a separate goroutine
+	botConnectionPool := bot.NewConnectionPool(
+		ctx,
+		stateDb,
+		apiID,
+		apiHash,
+		db,
+		clickCh,
+		log,
+	)
+
 	for _, botID := range botIDs {
 		go func(id int64) {
-			if err := bot.RunBot(ctx, stateDb, apiID, apiHash, id, db, clickCh, log, false); err != nil {
+			if err := botConnectionPool.AddBot(id); err != nil {
+				log.Error(fmt.Sprintf("Error starting bot %d: %v\n", id, err))
+			}
+			if err := botConnectionPool.RunBot(id, false); err != nil {
 				log.Error(fmt.Sprintf("Error running bot %d: %v\n", id, err))
 			}
 		}(botID)
@@ -172,7 +185,7 @@ func run(ctx context.Context) error {
 	}
 
 	// Run the API
-	go api.Start(ctx, stateDb, apiID, apiHash, db, clickCh, log)
+	go api.Start(ctx, stateDb, apiID, apiHash, db, clickCh, log, &botConnectionPool)
 
 	// Wait for all bots to finish processing updates
 	<-ctx.Done()

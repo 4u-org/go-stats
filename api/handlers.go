@@ -67,7 +67,15 @@ func (a *Api) addBot(q *Bot) (*Response, gnext.Status) {
 	}
 
 	// Start bot
-	go bot.RunBot(a.ctx, a.boltDb, a.apiID, a.apiHash, botIdInt, a.db, a.clickCh, a.log, true)
+	if err := a.botConnectionPool.AddBot(botIdInt); err != nil {
+		a.log.Info("Error starting bot", zap.Error(err))
+		return &Response{
+			Ok:      false,
+			Message: fmt.Sprintf("Error starting bot: %s", err),
+		}, http.StatusBadRequest
+	}
+
+	go a.botConnectionPool.RunBot(botIdInt, true)
 
 	return &Response{Ok: true}, http.StatusOK
 }

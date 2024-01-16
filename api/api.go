@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"go-stats/bot"
 	"go-stats/database"
 	"os"
 
@@ -14,13 +15,14 @@ import (
 )
 
 type Api struct {
-	ctx     context.Context
-	boltDb  *bolt.DB
-	apiID   int
-	apiHash string
-	db      *gorm.DB
-	clickCh chan *database.Event
-	log     *zap.Logger
+	ctx               context.Context
+	boltDb            *bolt.DB
+	apiID             int
+	apiHash           string
+	db                *gorm.DB
+	clickCh           chan *database.Event
+	log               *zap.Logger
+	botConnectionPool *bot.ConnectionPool
 }
 
 func NewApi(
@@ -31,15 +33,17 @@ func NewApi(
 	db *gorm.DB,
 	clickCh chan *database.Event,
 	log *zap.Logger,
+	botConnectionPool *bot.ConnectionPool,
 ) Api {
 	return Api{
-		ctx:     ctx,
-		boltDb:  boltDb,
-		apiID:   apiID,
-		apiHash: apiHash,
-		db:      db,
-		clickCh: clickCh,
-		log:     log,
+		ctx:               ctx,
+		boltDb:            boltDb,
+		apiID:             apiID,
+		apiHash:           apiHash,
+		db:                db,
+		clickCh:           clickCh,
+		log:               log,
+		botConnectionPool: botConnectionPool,
 	}
 }
 
@@ -51,10 +55,11 @@ func Start(
 	db *gorm.DB,
 	clickCh chan *database.Event,
 	log *zap.Logger,
+	botConnectionPool *bot.ConnectionPool,
 ) error {
 	r := gnext.Router(&docs.Options{Servers: []string{}})
 	apiLog := log.Named("api")
-	api := NewApi(ctx, boltDb, apiID, apiHash, db, clickCh, apiLog)
+	api := NewApi(ctx, boltDb, apiID, apiHash, db, clickCh, apiLog, botConnectionPool)
 
 	r.GET("/ping", api.ping)
 	r.GET("/add_bot", api.addBot)
