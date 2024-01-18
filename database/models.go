@@ -84,6 +84,7 @@ func (u *TgUser) TableName() string {
 }
 
 type Event struct {
+	Source             string     `gorm:"type:lowcardinality;not null"`
 	App                string     `gorm:"type:lowcardinality;not null"`
 	BotID              int64      `gorm:"not null"`
 	EventType          string     `gorm:"type:lowcardinality;not null"`

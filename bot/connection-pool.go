@@ -62,7 +62,7 @@ func (c *ConnectionPool) AddBot(botID int64) error {
 	session := NewBoltSessionStorage(c.stateDB, botID)
 	// storage := NewBoltState(stateDB)
 	accessHasher := NewBoltAccessHasher(c.stateDB)
-	handler := NewUpdateDispatcher(botID, bot.App, c.db, c.clickCH, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
+	handler := NewUpdateDispatcher(botID, bot.Source, bot.App, c.db, c.clickCH, namedLog.WithOptions(zap.IncreaseLevel(zap.WarnLevel)))
 
 	gaps := updates.New(updates.Config{
 		// Storage:      storage,

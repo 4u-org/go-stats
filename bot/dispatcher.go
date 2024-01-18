@@ -20,6 +20,7 @@ type handler = func(context.Context, Entities, tg.UpdateClass) error
 type UpdateDispatcher struct {
 	handlers          map[uint32]handler
 	botId             int64
+	botSource         *string
 	botApp            *string
 	db                *gorm.DB
 	api               *tg.Client
@@ -29,10 +30,11 @@ type UpdateDispatcher struct {
 	updateChatIDMutex *deadlock.RWMutex
 }
 
-func NewUpdateDispatcher(botId int64, botApp *string, db *gorm.DB, clickCh chan *database.Event, logger *zap.Logger) UpdateDispatcher {
+func NewUpdateDispatcher(botId int64, botSource *string, botApp *string, db *gorm.DB, clickCh chan *database.Event, logger *zap.Logger) UpdateDispatcher {
 	return UpdateDispatcher{
 		handlers:          map[uint32]handler{},
 		botId:             botId,
+		botSource:         botSource,
 		botApp:            botApp,
 		db:                db,
 		api:               nil,
@@ -131,6 +133,7 @@ func (u *UpdateDispatcher) dispatchSync(ctx context.Context, e Entities, update 
 	// fmt.Println(update)
 	// Handle updates here, e.g., print the update
 	event := database.Event{
+		Source:             *u.botSource,
 		App:                *u.botApp,
 		BotID:              u.botId,
 		EventType:          "raw",
